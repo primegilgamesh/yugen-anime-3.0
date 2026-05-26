@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
@@ -9,13 +9,18 @@ import { recentEpisodes } from "@/data/recentEpisodes";
 
 const ITEMS_PER_PAGE = 25;
 
-const totalPages = Math.ceil(recentEpisodes.length / ITEMS_PER_PAGE);
-
 const Recents = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [filter, setFilter] = useState<"all" | "sub" | "chinese">("all");
 
+  const filtered = useMemo(() => {
+    if (filter === "all") return recentEpisodes;
+    return recentEpisodes.filter((e) => e.language === filter);
+  }, [filter]);
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
-  const pageEpisodes = recentEpisodes.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+  const pageEpisodes = filtered.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
   const renderPagination = () => {
     if (totalPages <= 1) return null;
@@ -79,9 +84,22 @@ const Recents = () => {
       <div className="md:ml-[70px]">
         <TopBar />
         <div className="px-4 md:px-6 py-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Clock size={18} className="text-primary" />
-            <h1 className="text-foreground font-display font-bold text-lg">Recently Released</h1>
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <Clock size={18} className="text-primary" />
+              <h1 className="text-foreground font-display font-bold text-lg">Recently Released</h1>
+            </div>
+            <div className="flex items-center gap-1 bg-card border border-border rounded-md p-0.5">
+              {(["all", "sub", "chinese"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => { setFilter(f); setCurrentPage(1); }}
+                  className={`text-[11px] font-semibold px-3 py-1 rounded transition-colors ${filter === f ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  {f === "all" ? "All" : f === "sub" ? "Sub" : "Chinese"}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
