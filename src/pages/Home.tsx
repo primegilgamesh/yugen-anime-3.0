@@ -75,6 +75,48 @@ const Home = () => {
     </Link>
   );
 
+  const RecentlyReleasedSection = () => {
+    const [filter, setFilter] = useState<"all" | "sub" | "chinese">("all");
+    const items = useMemo(() => {
+      const list = filter === "all" ? recentEpisodes : recentEpisodes.filter((e) => e.language === filter);
+      return list.slice(0, 10);
+    }, [filter]);
+    return (
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <SectionHeader icon={Clock} title="Recently Released" iconColor="text-primary" href="/recents" />
+        </div>
+        <div className="flex items-center gap-1 bg-card border border-border rounded-md p-0.5 w-fit mb-3 -mt-1">
+          {(["all", "sub", "chinese"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`text-[11px] font-semibold px-3 py-1 rounded transition-colors ${filter === f ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {f === "all" ? "All" : f === "sub" ? "Sub" : "Chinese"}
+            </button>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {items.map((ep, i) => (
+            <Link to={`/anime/${ep.slug}/watch/${ep.episode}`} key={`${ep.slug}-${i}`} className="group block">
+              <div className={`relative rounded-md overflow-hidden bg-gradient-to-br ${getGradient(ep.gradient)} aspect-video`}>
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                <div className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded">EP {ep.episode}</div>
+                <div className="absolute bottom-1 right-1 bg-background/80 text-foreground text-[9px] px-1 py-0.5 rounded">{ep.duration}</div>
+              </div>
+              <div className="mt-1.5">
+                <p className="text-foreground text-[11px] font-medium leading-tight truncate group-hover:text-primary transition-colors">{ep.episode} : {ep.title}</p>
+                <p className="text-status-watching text-[10px] truncate">{ep.title}</p>
+                <p className="text-muted-foreground text-[9px]">{ep.views} · {ep.timeAgo}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background pb-14 md:pb-0">
       <Sidebar />
