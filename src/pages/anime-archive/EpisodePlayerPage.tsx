@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Heart, Play, Rewind, FastForward, Settings, Maximize, ChevronLeft, ChevronRight, LayoutGrid, Lightbulb, Camera, RotateCw, Download, Repeat } from "lucide-react";
+import { Play, Rewind, FastForward, Settings, Maximize, ChevronLeft, ChevronRight, LayoutGrid, Lightbulb, Camera, RotateCw, Download, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
@@ -9,6 +9,8 @@ import MobileDescription from "@/components/MobileDescription";
 import { allAnime } from "@/data/animeData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useList } from "@/contexts/ListContext";
+import ListControls from "@/components/ListControls";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const EpisodePlayerPage = () => {
   const { slug, episode } = useParams<{ slug: string; episode: string }>();
@@ -17,6 +19,9 @@ const EpisodePlayerPage = () => {
   const { recordWatch } = useList();
   const [autoNext, setAutoNext] = useState(true);
   const [audioMode, setAudioMode] = useState<"sub" | "dub">("sub");
+  const [subtitle, setSubtitle] = useState("English");
+  const [resolution, setResolution] = useState("Auto");
+  const playerRef = useRef<HTMLDivElement>(null);
 
   const anime = allAnime.find((a) => a.slug === slug);
 
@@ -45,12 +50,13 @@ const EpisodePlayerPage = () => {
 
   const currentEp = episodeList.find((e) => e.num === epNum) || episodeList[0];
 
-  const handleAuthAction = (action: string) => {
-    if (!isLoggedIn) {
-      toast("Please login first to " + action, {
-        style: { background: "hsla(210, 60%, 55%, 0.85)", color: "white", border: "none" },
-        position: "top-right",
-      });
+  const toggleFullscreen = () => {
+    const el = playerRef.current;
+    if (!el) return;
+    if (!document.fullscreenElement) {
+      el.requestFullscreen?.().catch(() => toast("Fullscreen not supported", { position: "top-right" }));
+    } else {
+      document.exitFullscreen?.();
     }
   };
 
@@ -62,9 +68,9 @@ const EpisodePlayerPage = () => {
         <TopBar />
 
         {/* Video Player */}
-        <div className="relative w-full aspect-video bg-black max-h-[70vh]">
+        <div ref={playerRef} className="relative w-full aspect-video bg-black max-h-[70vh]">
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-muted-foreground text-sm">Video Player</div>
+            <div className="text-muted-foreground text-sm">Video Player · {audioMode.toUpperCase()} · {resolution} · Subs: {subtitle}</div>
           </div>
           {/* Player Controls */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3 md:p-4">
@@ -77,8 +83,28 @@ const EpisodePlayerPage = () => {
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full" />
               </div>
               <span className="text-xs">00:00 / 23:15</span>
-              <button className="hover:text-primary transition"><Settings size={16} /></button>
-              <button className="hover:text-primary transition"><Maximize size={16} /></button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="hover:text-primary transition" aria-label="Settings"><Settings size={16} /></button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-56 p-3 bg-card border-border">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-foreground text-xs font-semibold block mb-1">Subtitles</label>
+                      <select value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="w-full bg-secondary text-foreground text-xs rounded px-2 py-1.5 border border-border focus:outline-none focus:border-primary cursor-pointer">
+                        {["Off", "English", "Spanish", "Japanese", "French", "German"].map((s) => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-foreground text-xs font-semibold block mb-1">Resolution</label>
+                      <select value={resolution} onChange={(e) => setResolution(e.target.value)} className="w-full bg-secondary text-foreground text-xs rounded px-2 py-1.5 border border-border focus:outline-none focus:border-primary cursor-pointer">
+                        {["Auto", "1080p", "720p", "480p", "360p"].map((r) => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <button onClick={toggleFullscreen} className="hover:text-primary transition" aria-label="Fullscreen"><Maximize size={16} /></button>
             </div>
           </div>
         </div>
@@ -91,15 +117,6 @@ const EpisodePlayerPage = () => {
             </Link>
           ) : <div className="w-5" />}
           <div className="flex items-center gap-3 text-muted-foreground">
-            {anime.dubbed && (
-              <button
-                onClick={() => setAudioMode((m) => (m === "sub" ? "dub" : "sub"))}
-                className="flex items-center gap-1 bg-primary/15 text-primary text-[11px] font-semibold px-2 py-1 rounded hover:bg-primary/25 transition"
-                aria-label="Toggle sub/dub"
-              >
-                <Repeat size={12} /> {audioMode === "sub" ? "SUB" : "DUB"}
-              </button>
-            )}
             <button className="hover:text-foreground transition" aria-label="Grid"><LayoutGrid size={14} /></button>
             <button className="hover:text-foreground transition" aria-label="Lights"><Lightbulb size={14} /></button>
             <button className="hover:text-foreground transition" aria-label="Screenshot"><Camera size={14} /></button>
@@ -132,18 +149,16 @@ const EpisodePlayerPage = () => {
               <p className="text-muted-foreground text-xs">{anime.studios}</p>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleAuthAction("add to list")}
-                className="bg-primary text-primary-foreground font-semibold text-xs px-4 py-2 rounded-md hover:opacity-90 transition"
-              >
-                Add to List
-              </button>
-              <button
-                onClick={() => handleAuthAction("favorite")}
-                className="p-2 rounded-md bg-muted text-muted-foreground hover:text-heart transition"
-              >
-                <Heart size={16} />
-              </button>
+              {anime.dubbed && (
+                <button
+                  onClick={() => setAudioMode((m) => (m === "sub" ? "dub" : "sub"))}
+                  className="bg-primary text-primary-foreground font-semibold text-xs px-4 py-2 rounded-md hover:opacity-90 transition flex items-center gap-1.5"
+                  aria-label="Toggle sub/dub"
+                >
+                  <Repeat size={12} /> {audioMode === "sub" ? "SUB" : "DUB"}
+                </button>
+              )}
+              <ListControls anime={anime} size="sm" />
             </div>
           </div>
 
