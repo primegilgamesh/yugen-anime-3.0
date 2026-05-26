@@ -8,6 +8,7 @@ export interface RecentEpisode {
   timeAgo: string;
   duration: string;
   gradient: number;
+  language: "sub" | "chinese";
 }
 
 const TIME_LABELS = [
@@ -26,4 +27,6 @@ export const recentEpisodes: RecentEpisode[] = allAnime
     timeAgo: anime.timeAgo || TIME_LABELS[i % TIME_LABELS.length],
     duration: anime.duration?.replace(" per ep", "") || "24:00",
     gradient: i,
+    // Light heuristic: mark every 5th entry as a Chinese donghua release
+    language: i % 5 === 0 && i > 0 ? "chinese" : "sub",
   }));
