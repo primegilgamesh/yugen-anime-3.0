@@ -37,15 +37,25 @@ const heroSlides = [
 const Home = () => {
   const { isLiked, toggleLike, getCount } = useReviewLikes();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [progress, setProgress] = useState(0);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
+  const SLIDE_DURATION = 10 * 60 * 1000;
+
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 10 * 60 * 1000);
-    return () => clearInterval(timer);
-  }, []);
+    setProgress(0);
+    const start = Date.now();
+    const tick = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const pct = Math.min(100, (elapsed / SLIDE_DURATION) * 100);
+      setProgress(pct);
+      if (elapsed >= SLIDE_DURATION) {
+        setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+      }
+    }, 500);
+    return () => clearInterval(tick);
+  }, [currentSlide]);
 
   const handleTouchStart = (e: TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchMove = (e: TouchEvent) => { touchEndX.current = e.touches[0].clientX; };
@@ -191,15 +201,12 @@ const Home = () => {
             <ChevronRight size={20} />
           </button>
 
-          {/* Slide indicators */}
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
-            {heroSlides.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentSlide(i)}
-                className={`w-2 h-2 rounded-full transition-all ${i === currentSlide ? "bg-primary w-4" : "bg-white/40 hover:bg-white/60"}`}
-              />
-            ))}
+          {/* Slide progress bar */}
+          <div className="absolute bottom-0 left-0 right-0 z-20 h-1 bg-white/20">
+            <div
+              className="h-full bg-green-500 transition-[width] duration-500 ease-linear"
+              style={{ width: `${progress}%` }}
+            />
           </div>
         </div>
 
