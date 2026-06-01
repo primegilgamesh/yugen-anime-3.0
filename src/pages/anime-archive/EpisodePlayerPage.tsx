@@ -10,7 +10,11 @@ import { allAnime } from "@/data/animeData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useList } from "@/contexts/ListContext";
 import ListControls from "@/components/ListControls";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+} from "@/components/ui/dropdown-menu";
 
 const EpisodePlayerPage = () => {
   const { slug, episode } = useParams<{ slug: string; episode: string }>();
@@ -83,11 +87,11 @@ const EpisodePlayerPage = () => {
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full" />
               </div>
               <span className="text-xs">00:00 / 23:15</span>
-              <Popover>
-                <PopoverTrigger asChild>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
                   <button className="hover:text-primary transition" aria-label="Settings"><Settings size={16} /></button>
-                </PopoverTrigger>
-                <PopoverContent align="end" className="w-56 p-3 bg-card border-border">
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 p-3 bg-card border-border">
                   <div className="space-y-3">
                     <div>
                       <label className="text-foreground text-xs font-semibold block mb-1">Subtitles</label>
@@ -102,8 +106,8 @@ const EpisodePlayerPage = () => {
                       </select>
                     </div>
                   </div>
-                </PopoverContent>
-              </Popover>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <button onClick={toggleFullscreen} className="hover:text-primary transition" aria-label="Fullscreen"><Maximize size={16} /></button>
             </div>
           </div>

@@ -41,7 +41,7 @@ const Home = () => {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  const SLIDE_DURATION = 10 * 60 * 1000;
+  const SLIDE_DURATION = 5 * 1000;
 
   useEffect(() => {
     setProgress(0);
@@ -53,7 +53,7 @@ const Home = () => {
       if (elapsed >= SLIDE_DURATION) {
         setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
       }
-    }, 500);
+    }, 50);
     return () => clearInterval(tick);
   }, [currentSlide]);
 
