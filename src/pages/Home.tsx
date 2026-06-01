@@ -37,24 +37,16 @@ const heroSlides = [
 const Home = () => {
   const { isLiked, toggleLike, getCount } = useReviewLikes();
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [progress, setProgress] = useState(0);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
   const SLIDE_DURATION = 5 * 1000;
 
   useEffect(() => {
-    setProgress(0);
-    const start = Date.now();
-    const tick = setInterval(() => {
-      const elapsed = Date.now() - start;
-      const pct = Math.min(100, (elapsed / SLIDE_DURATION) * 100);
-      setProgress(pct);
-      if (elapsed >= SLIDE_DURATION) {
-        setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-      }
-    }, 50);
-    return () => clearInterval(tick);
+    const t = setTimeout(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, SLIDE_DURATION);
+    return () => clearTimeout(t);
   }, [currentSlide]);
 
   const handleTouchStart = (e: TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
@@ -201,12 +193,12 @@ const Home = () => {
             <ChevronRight size={20} />
           </button>
 
-          {/* Slide progress bar */}
+          {/* Slide progress bar - smooth CSS animation */}
           <div className="absolute bottom-0 left-0 right-0 z-20 h-1 bg-white/20">
             <div
               key={currentSlide}
-              className="h-full bg-green-500"
-              style={{ width: `${progress}%`, transition: progress === 0 ? "none" : "width 80ms linear" }}
+              className="h-full bg-green-500 origin-left animate-slide-progress"
+              style={{ animationDuration: `${SLIDE_DURATION}ms` }}
             />
           </div>
         </div>
