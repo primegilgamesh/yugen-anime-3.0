@@ -5,6 +5,12 @@ import Sidebar from "@/components/Sidebar";
 import BottomNav from "@/components/BottomNav";
 import TopBar from "@/components/TopBar";
 import { allAnime, getGradient } from "@/data/animeData";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 const ITEMS_PER_PAGE = 42;
 
@@ -100,9 +106,23 @@ const Discover = () => {
   const SelectDropdown = ({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (v: string) => void }) => (
     <div>
       <p className="text-foreground font-semibold text-sm mb-1">{label}</p>
-      <select value={value} onChange={(e) => { onChange(e.target.value); setCurrentPage(1); }} className="w-full bg-secondary text-foreground text-sm rounded-md px-3 py-2 border-none outline-none appearance-none cursor-pointer">
-        {options.map((o) => <option key={o} value={o}>{o}</option>)}
-      </select>
+      <DropdownMenu>
+        <DropdownMenuTrigger className="w-full bg-secondary text-foreground text-sm rounded-md px-3 py-2 border-none outline-none cursor-pointer flex items-center justify-between hover:bg-secondary/80 transition-colors">
+          <span>{value}</span>
+          <ChevronDown size={14} className="text-muted-foreground" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] bg-card border-border z-[110]">
+          {options.map((o) => (
+            <DropdownMenuItem
+              key={o}
+              onClick={() => { onChange(o); setCurrentPage(1); }}
+              className={`text-sm cursor-pointer ${value === o ? "text-primary font-medium" : "text-foreground"}`}
+            >
+              {o}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 

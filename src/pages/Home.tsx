@@ -204,8 +204,9 @@ const Home = () => {
           {/* Slide progress bar */}
           <div className="absolute bottom-0 left-0 right-0 z-20 h-1 bg-white/20">
             <div
-              className="h-full bg-green-500 transition-[width] duration-500 ease-linear"
-              style={{ width: `${progress}%` }}
+              key={currentSlide}
+              className="h-full bg-green-500"
+              style={{ width: `${progress}%`, transition: progress === 0 ? "none" : "width 80ms linear" }}
             />
           </div>
         </div>
