@@ -3,7 +3,11 @@ import { Search, X, LogOut, Sun, Moon } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth, AVATARS } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+} from "@/components/ui/dropdown-menu";
 import { allAnime } from "@/data/animeData";
 import yugenLogo from "@/assets/yugen-logo.png";
 
@@ -97,7 +101,7 @@ const TopBar = () => {
     </div>
   );
 
-  const searchDropdown = searchResults.length > 0 && (
+  const searchDropdown = searchQuery.trim().length > 0 && (
     <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg z-50 max-h-[300px] overflow-y-auto">
       {searchResults.map((a) => (
         <button key={a.slug} onClick={() => handleResultClick(a.slug)} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-secondary transition-colors text-left">
@@ -108,7 +112,11 @@ const TopBar = () => {
           </div>
         </button>
       ))}
-      <button onClick={handleSearchSubmit} className="w-full px-3 py-2 text-primary text-xs hover:bg-secondary transition-colors text-center">
+      <button
+        type="button"
+        onMouseDown={(e) => { e.preventDefault(); handleSearchSubmit(e as unknown as React.FormEvent); }}
+        className="w-full px-3 py-2 text-primary text-xs hover:bg-secondary transition-colors text-center border-t border-border"
+      >
         View all results in Discover →
       </button>
     </div>
@@ -170,16 +178,16 @@ const TopBar = () => {
               <DiscordIcon />
             </a>
             {isLoggedIn ? (
-              <Popover open={profileOpen} onOpenChange={setProfileOpen}>
-                <PopoverTrigger asChild>
+              <DropdownMenu open={profileOpen} onOpenChange={setProfileOpen}>
+                <DropdownMenuTrigger asChild>
                   <button className="w-7 h-7 rounded-full overflow-hidden border border-border hover:border-primary transition">
                     <img src={user?.avatar} alt="" className="w-full h-full" />
                   </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 border-0 bg-transparent shadow-none" align="end">
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-auto p-0 border-0 bg-transparent shadow-none" align="end">
                   {profileDropdown}
-                </PopoverContent>
-              </Popover>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Link to="/signin" className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1.5 rounded-md hover:opacity-90 transition">Sign in</Link>
             )}
