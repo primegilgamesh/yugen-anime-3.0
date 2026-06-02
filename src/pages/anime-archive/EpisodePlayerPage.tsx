@@ -54,12 +54,22 @@ const EpisodePlayerPage = () => {
 
   const currentEp = episodeList.find((e) => e.num === epNum) || episodeList[0];
 
-  const toggleFullscreen = () => {
+  const toggleFullscreen = async () => {
     const el = playerRef.current;
     if (!el) return;
+    const screenOrient = (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }) | undefined;
     if (!document.fullscreenElement) {
-      el.requestFullscreen?.().catch(() => toast("Fullscreen not supported", { position: "top-right" }));
+      try {
+        await el.requestFullscreen?.();
+        // On mobile, lock to landscape for a proper video viewing experience
+        if (window.matchMedia("(max-width: 768px)").matches) {
+          try { await screenOrient?.lock?.("landscape"); } catch { /* not supported */ }
+        }
+      } catch {
+        toast("Fullscreen not supported", { position: "top-right" });
+      }
     } else {
+      try { screenOrient?.unlock?.(); } catch { /* ignore */ }
       document.exitFullscreen?.();
     }
   };
