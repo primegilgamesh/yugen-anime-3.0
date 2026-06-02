@@ -102,13 +102,22 @@ const TopBar = () => {
   );
 
   const searchDropdown = searchQuery.trim().length > 0 && (
-    <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg z-50">
+    <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg z-50 max-h-[320px] overflow-y-auto">
+      {searchResults.map((a) => (
+        <button key={a.slug} onClick={() => handleResultClick(a.title)} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-secondary transition-colors text-left">
+          <div className={`w-8 h-10 rounded bg-gradient-to-br ${a.cover} flex-shrink-0`} />
+          <div className="min-w-0">
+            <p className="text-foreground text-sm font-medium truncate">{a.title}</p>
+            <p className="text-muted-foreground text-[10px]">{a.season} • {a.score?.toFixed(2)}</p>
+          </div>
+        </button>
+      ))}
       <button
         type="button"
         onMouseDown={(e) => { e.preventDefault(); handleSearchSubmit(e as unknown as React.FormEvent); }}
-        className="w-full px-3 py-2 text-primary text-xs hover:bg-secondary transition-colors text-left flex items-center justify-between"
+        className="w-full px-3 py-2 text-primary text-xs hover:bg-secondary transition-colors text-left flex items-center justify-between border-t border-border"
       >
-        <span className="text-foreground">View {searchResults.length > 0 ? `${searchResults.length}+ ` : ""}results for "<span className="text-primary">{searchQuery}</span>"</span>
+        <span className="text-foreground truncate">View all results for "<span className="text-primary">{searchQuery}</span>"</span>
         <span className="text-primary">in Discover →</span>
       </button>
     </div>
