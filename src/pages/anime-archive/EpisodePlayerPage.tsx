@@ -57,7 +57,7 @@ const EpisodePlayerPage = () => {
   const toggleFullscreen = async () => {
     const el = playerRef.current;
     if (!el) return;
-    const screenOrient = (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }) | undefined;
+    const screenOrient = screen.orientation as (ScreenOrientation & { lock?: (o: string) => Promise<void>; unlock?: () => void }) | undefined;
     if (!document.fullscreenElement) {
       try {
         await el.requestFullscreen?.();
