@@ -193,14 +193,6 @@ const Home = () => {
             <ChevronRight size={20} />
           </button>
 
-          {/* Slide progress bar - smooth CSS animation */}
-          <div className="absolute bottom-0 left-0 right-0 z-20 h-1 bg-white/20">
-            <div
-              key={currentSlide}
-              className="h-full bg-green-500 origin-left animate-slide-progress"
-              style={{ animationDuration: `${SLIDE_DURATION}ms` }}
-            />
-          </div>
         </div>
 
         <div className="px-4 md:px-6 py-4 space-y-8">
