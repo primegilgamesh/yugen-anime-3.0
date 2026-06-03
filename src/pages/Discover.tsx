@@ -92,13 +92,13 @@ const Discover = () => {
     }
     return (
       <div className="flex items-center justify-center gap-1 mt-8">
-        <button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1} className="text-muted-foreground hover:text-foreground text-xs px-2 py-1.5 disabled:opacity-40">Previous</button>
+        <button onClick={() => { setCurrentPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }} disabled={currentPage === 1} className="text-muted-foreground hover:text-foreground text-xs px-2 py-1.5 disabled:opacity-40">Previous</button>
         {pages.map((page, i) =>
           typeof page === "string" ? <span key={`e-${i}`} className="text-muted-foreground text-xs px-1">{page}</span> : (
-            <button key={page} onClick={() => setCurrentPage(page)} className={`text-xs min-w-[28px] h-7 rounded transition-colors ${page === currentPage ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>{page}</button>
+            <button key={page} onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: "smooth" }); }} className={`text-xs min-w-[28px] h-7 rounded transition-colors ${page === currentPage ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`}>{page}</button>
           )
         )}
-        <button onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="text-muted-foreground hover:text-foreground text-xs px-2 py-1.5 disabled:opacity-40">Next</button>
+        <button onClick={() => { setCurrentPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); }} disabled={currentPage === totalPages} className="text-muted-foreground hover:text-foreground text-xs px-2 py-1.5 disabled:opacity-40">Next</button>
       </div>
     );
   };

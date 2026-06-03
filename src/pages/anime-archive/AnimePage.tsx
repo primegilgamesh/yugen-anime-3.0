@@ -17,7 +17,7 @@ import { Link } from "react-router-dom";
 
 const AnimePage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "Overview");
 
   useEffect(() => {
@@ -26,6 +26,16 @@ const AnimePage = () => {
       setActiveTab(tab);
     }
   }, [searchParams]);
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    const next = new URLSearchParams(searchParams);
+    if (tab === "Overview") next.delete("tab");
+    else next.set("tab", tab);
+    setSearchParams(next, { replace: true });
+  };
+
+  const goToReviews = () => handleTabChange("Reviews");
 
   const found = allAnime.find((a) => a.slug === slug);
 
@@ -51,15 +61,15 @@ const AnimePage = () => {
       <div className="md:ml-[70px]">
         <TopBar />
         <AnimeHeroBanner anime={anime} />
-        <AnimeTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        <AnimeTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
         <div className="py-4">
-          <MobileAnimeInfo anime={anime} hideReviewButton={activeTab === "Reviews"} />
+          <MobileAnimeInfo anime={anime} hideReviewButton={activeTab === "Reviews"} onWriteReview={goToReviews} />
         </div>
 
         <div className="flex gap-6 md:gap-14 p-4 md:p-6">
           <div className="w-64 flex-shrink-0 hidden md:block">
-            <AnimeInfoSidebar anime={anime} hideReviewButton={activeTab === "Reviews"} />
+            <AnimeInfoSidebar anime={anime} hideReviewButton={activeTab === "Reviews"} onWriteReview={goToReviews} />
           </div>
           <div className="flex-1 min-w-0 space-y-6 md:space-y-8">
             {activeTab === "Overview" && (
