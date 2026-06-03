@@ -8,6 +8,7 @@ import { ListProvider } from "@/contexts/ListContext";
 import { ReviewsProvider } from "@/contexts/ReviewsContext";
 import { ReviewLikesProvider } from "@/contexts/ReviewLikesContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import "@/data/scheduleData"; // ensures schedule merges into allAnime so pages auto-generate
 import ScrollToTop from "@/components/ScrollToTop";
 import Home from "./pages/Home";
@@ -21,6 +22,7 @@ import Discover from "./pages/Discover";
 import MyList from "./pages/MyList";
 import History from "./pages/History";
 import Profile from "./pages/Profile";
+import Admin from "./pages/Admin";
 import { NewPage, PopularPage, ReviewsPage } from "./pages/MorePages";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +33,7 @@ const App = () => (
     <TooltipProvider>
       <ThemeProvider>
         <AuthProvider>
+          <NotificationsProvider>
           <ListProvider>
             <ReviewsProvider>
               <ReviewLikesProvider>
@@ -50,6 +53,7 @@ const App = () => (
                   <Route path="/my-list" element={<MyList />} />
                   <Route path="/history" element={<History />} />
                   <Route path="/profile" element={<Profile />} />
+                  <Route path="/admin" element={<Admin />} />
                   <Route path="/new" element={<NewPage />} />
                   <Route path="/popular" element={<PopularPage />} />
                   <Route path="/reviews" element={<ReviewsPage />} />
@@ -59,6 +63,7 @@ const App = () => (
               </ReviewLikesProvider>
             </ReviewsProvider>
           </ListProvider>
+          </NotificationsProvider>
         </AuthProvider>
       </ThemeProvider>
     </TooltipProvider>

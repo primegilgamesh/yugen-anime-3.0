@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, X, LogOut, Sun, Moon } from "lucide-react";
+import { Search, X, LogOut, Sun, Moon, Bell, Shield, Trash2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth, AVATARS } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -23,10 +24,12 @@ const TopBar = () => {
   const [searchResults, setSearchResults] = useState<typeof allAnime>([]);
   const [profileOpen, setProfileOpen] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const desktopInputRef = useRef<HTMLInputElement>(null);
-  const { user, isLoggedIn, logout, setAvatar } = useAuth();
+  const { user, isLoggedIn, isAdmin, logout, setAvatar } = useAuth();
   const { theme, toggle: toggleTheme } = useTheme();
+  const { notifications, unreadCount, removeNotification, markAllRead, clearAll } = useNotifications();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -93,11 +96,47 @@ const TopBar = () => {
               <p className="text-muted-foreground text-[10px]">{user?.email}</p>
             </div>
           </div>
+          {isAdmin && (
+            <Link to="/admin" onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-2 px-3 py-2.5 text-foreground text-sm hover:bg-secondary transition-colors">
+              <Shield size={14} /> Admin panel
+            </Link>
+          )}
           <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2.5 text-destructive text-sm hover:bg-secondary transition-colors">
             <LogOut size={14} /> Logout
           </button>
         </>
       )}
+    </div>
+  );
+
+  const notifDropdown = (
+    <div className="w-80 max-w-[90vw] bg-card border border-border rounded-lg shadow-xl overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+        <p className="text-foreground text-sm font-semibold">Notifications</p>
+        <div className="flex gap-2 text-[11px]">
+          <button onClick={markAllRead} className="text-muted-foreground hover:text-foreground">Mark read</button>
+          <button onClick={clearAll} className="text-muted-foreground hover:text-destructive">Clear</button>
+        </div>
+      </div>
+      <div className="max-h-[360px] overflow-y-auto">
+        {notifications.length === 0 ? (
+          <p className="text-muted-foreground text-xs text-center py-6">No notifications yet</p>
+        ) : (
+          notifications.map((n) => (
+            <div key={n.id} className="flex gap-2 px-3 py-2 border-b border-border last:border-0 hover:bg-secondary/50 group">
+              <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${n.type === "admin" ? "bg-orange-500" : n.type === "release" ? "bg-primary" : "bg-muted-foreground"}`} />
+              <div className="flex-1 min-w-0">
+                <p className="text-foreground text-xs font-medium truncate">{n.title}</p>
+                {n.body && <p className="text-muted-foreground text-[11px] line-clamp-2">{n.body}</p>}
+                <p className="text-muted-foreground/70 text-[10px] mt-0.5">{new Date(n.createdAt).toLocaleString("en-GB", { hour12: false })}</p>
+              </div>
+              <button onClick={() => removeNotification(n.id)} className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition" aria-label="Delete">
+                <Trash2 size={12} />
+              </button>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 
@@ -175,6 +214,23 @@ const TopBar = () => {
             <button onClick={toggleTheme} aria-label="Toggle theme" className="text-muted-foreground hover:text-foreground transition-colors">
               {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
             </button>
+            {isLoggedIn && (
+              <DropdownMenu open={notifOpen} onOpenChange={setNotifOpen}>
+                <DropdownMenuTrigger asChild>
+                  <button className="relative text-muted-foreground hover:text-foreground transition-colors" aria-label="Notifications">
+                    <Bell size={18} />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] font-bold rounded-full min-w-[14px] h-[14px] px-1 flex items-center justify-center">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-auto p-0 border-0 bg-transparent shadow-none" align="end">
+                  {notifDropdown}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <a href="https://discord.gg/lovable-dev" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
               <DiscordIcon />
             </a>

@@ -4,11 +4,13 @@ export interface User {
   username: string;
   email: string;
   avatar: string;
+  isAdmin?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
+  isAdmin: boolean;
   login: (email: string, password: string) => { success: boolean; error?: string };
   signup: (username: string, email: string, password: string) => { success: boolean; error?: string };
   logout: () => void;
@@ -59,6 +61,16 @@ interface StoredUser {
   avatar: string;
 }
 
+export const ADMIN_EMAIL = "yugenanimecc@gmail.com";
+const ADMIN_PASSWORD = "Lordson@18";
+
+const isBanned = (email: string): boolean => {
+  try {
+    const banned: string[] = JSON.parse(localStorage.getItem("yugen_banned_users") || "[]");
+    return banned.includes(email);
+  } catch { return false; }
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
@@ -74,7 +86,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = (email: string, password: string) => {
     const emailErr = validateEmail(email);
     if (emailErr) return { success: false, error: emailErr };
-    
+
+    // Admin login shortcut — does not require a registered account.
+    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+      const adminData: User = {
+        username: "Admin",
+        email: ADMIN_EMAIL,
+        avatar: `https://api.dicebear.com/7.x/lorelei/svg?seed=Admin`,
+        isAdmin: true,
+      };
+      setUser(adminData);
+      localStorage.setItem("yugen_current_user", JSON.stringify(adminData));
+      return { success: true };
+    }
+
+    if (isBanned(email)) return { success: false, error: "This account has been banned." };
+
     const users: StoredUser[] = JSON.parse(localStorage.getItem("yugen_users") || "[]");
     const found = users.find((u) => u.email === email);
     if (!found) return { success: false, error: "No account found. Please create an account first." };
@@ -130,7 +157,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn: !!user, login, signup, logout, setAvatar }}>
+    <AuthContext.Provider value={{ user, isLoggedIn: !!user, isAdmin: !!user?.isAdmin, login, signup, logout, setAvatar }}>
       {children}
     </AuthContext.Provider>
   );

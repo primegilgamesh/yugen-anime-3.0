@@ -144,9 +144,8 @@ const ScheduleModal = () => {
             <div className="space-y-1">
               {list.map((entry) => {
                 const d = new Date(entry.airingAt * 1000);
-                const t = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                const t = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false });
                 const passed = entry.airingAt * 1000 < now.getTime();
-                const flag = entry.country === "CN" ? "🇨🇳" : entry.country === "KR" ? "🇰🇷" : entry.country === "TW" ? "🇹🇼" : "🇯🇵";
                 return (
                   <div key={`${entry.id}-${entry.episode}`} className="flex gap-3 py-1">
                     <span className={`text-sm font-medium w-14 flex-shrink-0 ${passed ? "text-muted-foreground/60" : "text-primary"}`}>{t}</span>
@@ -154,7 +153,7 @@ const ScheduleModal = () => {
                       to={`/anime/${slugify(entry.romaji || entry.title)}`}
                       className="text-muted-foreground text-sm hover:text-primary transition-colors flex-1 truncate"
                     >
-                      <span className="mr-1">{flag}</span>{entry.title}
+                      {entry.title}
                       <span className="text-[11px] text-muted-foreground/70 ml-2">EP {entry.episode}</span>
                     </Link>
                   </div>
