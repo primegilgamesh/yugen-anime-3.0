@@ -8,9 +8,10 @@ import { aggregateAnimeStats, averageUserScore } from "@/lib/animeStats";
 interface Props {
   anime: AnimeEntry;
   hideReviewButton?: boolean;
+  onWriteReview?: () => void;
 }
 
-const AnimeInfoSidebar = ({ anime, hideReviewButton }: Props) => {
+const AnimeInfoSidebar = ({ anime, hideReviewButton, onWriteReview }: Props) => {
   const { isLoggedIn } = useAuth();
   const [stats, setStats] = useState(() => aggregateAnimeStats(anime.slug));
   const [avg, setAvg] = useState<number | null>(() => averageUserScore(anime.slug));
@@ -31,6 +32,7 @@ const AnimeInfoSidebar = ({ anime, hideReviewButton }: Props) => {
       });
       return;
     }
+    onWriteReview?.();
   };
 
   const infoItems = [
