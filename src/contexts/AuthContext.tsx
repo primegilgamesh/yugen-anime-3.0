@@ -61,6 +61,16 @@ interface StoredUser {
   avatar: string;
 }
 
+export const ADMIN_EMAIL = "yugenanimecc@gmail.com";
+const ADMIN_PASSWORD = "Lordson@18";
+
+const isBanned = (email: string): boolean => {
+  try {
+    const banned: string[] = JSON.parse(localStorage.getItem("yugen_banned_users") || "[]");
+    return banned.includes(email);
+  } catch { return false; }
+};
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
@@ -72,16 +82,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } catch {}
     }
   }, []);
-
-export const ADMIN_EMAIL = "yugenanimecc@gmail.com";
-const ADMIN_PASSWORD = "Lordson@18";
-
-const isBanned = (email: string): boolean => {
-  try {
-    const banned: string[] = JSON.parse(localStorage.getItem("yugen_banned_users") || "[]");
-    return banned.includes(email);
-  } catch { return false; }
-};
 
   const login = (email: string, password: string) => {
     const emailErr = validateEmail(email);
