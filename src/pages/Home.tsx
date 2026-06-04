@@ -237,7 +237,7 @@ const Home = () => {
           <section>
             <SectionHeader icon={TrendingUp} title="Trending Airing Series" iconColor="text-primary" href="/trending" />
             <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-              {trendingAiring.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i} />)}
+              {trendingList.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i} />)}
             </div>
           </section>
 
@@ -253,7 +253,7 @@ const Home = () => {
               <SectionHeader icon={Sparkles} title="Editor's Pick" iconColor="text-score-star" hideArrow />
               <p className="text-muted-foreground text-[11px] mb-3 -mt-2">This is our favorite picks of all time</p>
               <div className="grid grid-cols-2 md:grid-cols-6 gap-3 relative z-10">
-                {editorsPick.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i + 6} />)}
+                {editorsList.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i + 6} />)}
               </div>
             </div>
 
@@ -270,7 +270,7 @@ const Home = () => {
               <SectionHeader icon={HeartHandshake} title="Underrated Series" iconColor="text-heart" hideArrow />
               <p className="text-muted-foreground text-[11px] mb-3 -mt-2">Real gems that should get the attention they deserve</p>
               <div className="grid grid-cols-2 md:grid-cols-6 gap-3 relative z-10">
-                {underratedSeries.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i + 3} />)}
+                {underratedList.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i + 3} />)}
               </div>
             </div>
           </div>
@@ -279,7 +279,7 @@ const Home = () => {
           <section>
             <SectionHeader icon={Plus} title="New on YugenAnime" iconColor="text-primary" href="/new" />
             <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-              {newOnYugen.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i + 9} />)}
+              {newList.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i + 9} />)}
             </div>
           </section>
 
@@ -287,7 +287,7 @@ const Home = () => {
           <section>
             <SectionHeader icon={Flame} title="Most Popular Series" iconColor="text-score-star" href="/popular" />
             <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-              {mostPopular.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i} />)}
+              {popularList.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i} />)}
             </div>
           </section>
 
