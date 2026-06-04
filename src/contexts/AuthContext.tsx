@@ -64,6 +64,25 @@ interface StoredUser {
 export const ADMIN_EMAIL = "yugenanimecc@gmail.com";
 const ADMIN_PASSWORD = "Lordson@18";
 
+export interface AdminAccount { email: string; password: string; name?: string; addedAt: number }
+export const ADMINS_KEY = "yugen_admins";
+export const ADMIN_LOGINS_KEY = "yugen_admin_logins";
+
+const recordAdminLogin = (email: string) => {
+  try {
+    const list: any[] = JSON.parse(localStorage.getItem(ADMIN_LOGINS_KEY) || "[]");
+    list.unshift({ email, at: Date.now(), userAgent: navigator.userAgent.slice(0, 120) });
+    localStorage.setItem(ADMIN_LOGINS_KEY, JSON.stringify(list.slice(0, 200)));
+  } catch {}
+};
+
+const findExtraAdmin = (email: string, password: string): AdminAccount | null => {
+  try {
+    const list: AdminAccount[] = JSON.parse(localStorage.getItem(ADMINS_KEY) || "[]");
+    return list.find((a) => a.email === email && a.password === password) || null;
+  } catch { return null; }
+};
+
 const isBanned = (email: string): boolean => {
   try {
     const banned: string[] = JSON.parse(localStorage.getItem("yugen_banned_users") || "[]");
@@ -97,6 +116,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       };
       setUser(adminData);
       localStorage.setItem("yugen_current_user", JSON.stringify(adminData));
+      recordAdminLogin(email);
+      return { success: true };
+    }
+
+    const extra = findExtraAdmin(email, password);
+    if (extra) {
+      const adminData: User = {
+        username: extra.name || "Admin",
+        email: extra.email,
+        avatar: `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(extra.name || extra.email)}`,
+        isAdmin: true,
+      };
+      setUser(adminData);
+      localStorage.setItem("yugen_current_user", JSON.stringify(adminData));
+      recordAdminLogin(email);
       return { success: true };
     }
 
