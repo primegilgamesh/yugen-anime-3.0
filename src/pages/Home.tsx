@@ -18,6 +18,30 @@ import {
 import { recentEpisodes } from "@/data/recentEpisodes";
 import { useReviewLikes } from "@/contexts/ReviewLikesContext";
 
+const HOME_OVERRIDES_KEY = "yugen_home_overrides";
+const useHomeOverrides = () => {
+  const [overrides, setOverrides] = useState<Record<string, string[]>>(() => {
+    try { return JSON.parse(localStorage.getItem(HOME_OVERRIDES_KEY) || "{}"); } catch { return {}; }
+  });
+  useEffect(() => {
+    const handler = () => {
+      try { setOverrides(JSON.parse(localStorage.getItem(HOME_OVERRIDES_KEY) || "{}")); } catch { setOverrides({}); }
+    };
+    window.addEventListener("yugen-home-overrides-update", handler);
+    window.addEventListener("storage", handler);
+    return () => {
+      window.removeEventListener("yugen-home-overrides-update", handler);
+      window.removeEventListener("storage", handler);
+    };
+  }, []);
+  return overrides;
+};
+
+const resolveSlugs = (slugs: string[] | undefined, fallback: any[]): any[] => {
+  if (!slugs || slugs.length === 0) return fallback;
+  return slugs.map((s) => allAnime.find((a) => a.slug === s)).filter(Boolean) as any[];
+};
+
 
 const reviews = [
   { id: "home-rev-1", anime: "I've Got a Million Skill Points!", slug: "million-skill-points", user: "MadSlime", quote: "when will this be out i kinda want to watch it so bad its hurting my last brain cell, c'mon guys release it already, i cannnot", time: "about 6 hours ago", likes: 0, gradient: 2 },
@@ -28,14 +52,24 @@ const reviews = [
   { id: "home-rev-6", anime: "I've Got a Million Skill Points!", slug: "million-skill-points", user: "NightShade587", quote: "Some descriptions, I should be clear, the anime is alright because it currently has no description.", time: "2 days ago", likes: 1, gradient: 3 },
 ];
 
-// 5 hero slides, change every 10 minutes
-const heroSlides = [
+// Default 5 hero slides; admins can override via the Admin Home Layout tab.
+const defaultHeroSlides = [
   ...heroPicks,
   ...allAnime.filter((a) => !heroPicks.find((h) => h.slug === a.slug)).slice(0, 5),
 ].slice(0, 5);
 
 const Home = () => {
   const { isLiked, toggleLike, getCount } = useReviewLikes();
+  const overrides = useHomeOverrides();
+  const heroSlides = useMemo(() => {
+    const custom = resolveSlugs(overrides.heroSlides, []);
+    return custom.length > 0 ? custom.slice(0, 8) : defaultHeroSlides;
+  }, [overrides]);
+  const trendingList = useMemo(() => resolveSlugs(overrides.trendingAiring, trendingAiring), [overrides]);
+  const editorsList = useMemo(() => resolveSlugs(overrides.editorsPick, editorsPick), [overrides]);
+  const underratedList = useMemo(() => resolveSlugs(overrides.underratedSeries, underratedSeries), [overrides]);
+  const newList = useMemo(() => resolveSlugs(overrides.newOnYugen, newOnYugen), [overrides]);
+  const popularList = useMemo(() => resolveSlugs(overrides.mostPopular, mostPopular), [overrides]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -203,7 +237,7 @@ const Home = () => {
           <section>
             <SectionHeader icon={TrendingUp} title="Trending Airing Series" iconColor="text-primary" href="/trending" />
             <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-              {trendingAiring.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i} />)}
+              {trendingList.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i} />)}
             </div>
           </section>
 
@@ -219,7 +253,7 @@ const Home = () => {
               <SectionHeader icon={Sparkles} title="Editor's Pick" iconColor="text-score-star" hideArrow />
               <p className="text-muted-foreground text-[11px] mb-3 -mt-2">This is our favorite picks of all time</p>
               <div className="grid grid-cols-2 md:grid-cols-6 gap-3 relative z-10">
-                {editorsPick.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i + 6} />)}
+                {editorsList.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i + 6} />)}
               </div>
             </div>
 
@@ -236,7 +270,7 @@ const Home = () => {
               <SectionHeader icon={HeartHandshake} title="Underrated Series" iconColor="text-heart" hideArrow />
               <p className="text-muted-foreground text-[11px] mb-3 -mt-2">Real gems that should get the attention they deserve</p>
               <div className="grid grid-cols-2 md:grid-cols-6 gap-3 relative z-10">
-                {underratedSeries.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i + 3} />)}
+                {underratedList.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i + 3} />)}
               </div>
             </div>
           </div>
@@ -245,7 +279,7 @@ const Home = () => {
           <section>
             <SectionHeader icon={Plus} title="New on YugenAnime" iconColor="text-primary" href="/new" />
             <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-              {newOnYugen.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i + 9} />)}
+              {newList.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i + 9} />)}
             </div>
           </section>
 
@@ -253,7 +287,7 @@ const Home = () => {
           <section>
             <SectionHeader icon={Flame} title="Most Popular Series" iconColor="text-score-star" href="/popular" />
             <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-              {mostPopular.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i} />)}
+              {popularList.map((anime, i) => <AnimePortraitCard key={anime.slug} anime={anime} i={i} />)}
             </div>
           </section>
 

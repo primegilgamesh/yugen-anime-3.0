@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import Sidebar from "@/components/Sidebar";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, ADMINS_KEY, ADMIN_LOGINS_KEY, AdminAccount } from "@/contexts/AuthContext";
 import { broadcastAdminNotification } from "@/contexts/NotificationsContext";
 import { allAnime } from "@/data/animeData";
 import { aggregateAnimeStats } from "@/lib/animeStats";
@@ -47,7 +47,7 @@ const AdminLoginGate = () => {
   );
 };
 
-type Tab = "animes" | "users" | "stats" | "broadcast";
+type Tab = "animes" | "users" | "stats" | "broadcast" | "home" | "admins";
 
 const Admin = () => {
   const { isAdmin, isLoggedIn } = useAuth();
@@ -78,6 +78,8 @@ const Admin = () => {
               ["users", "Users"],
               ["stats", "Statistics"],
               ["broadcast", "Broadcast"],
+              ["home", "Home Layout"],
+              ["admins", "Admins"],
             ] as [Tab, string][]).map(([id, label]) => (
               <button key={id} onClick={() => setTab(id)} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${tab === id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>{label}</button>
             ))}
@@ -86,6 +88,8 @@ const Admin = () => {
           {tab === "users" && <UsersTab />}
           {tab === "stats" && <StatsTab />}
           {tab === "broadcast" && <BroadcastTab />}
+          {tab === "home" && <HomeLayoutTab />}
+          {tab === "admins" && <AdminsTab />}
         </main>
       </div>
     </div>
@@ -213,6 +217,8 @@ const UsersTab = () => {
   const [banned, setBanned] = useState<string[]>(() => loadJSON(BAN_KEY, [] as string[]));
   const [target, setTarget] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [q, setQ] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "banned">("all");
 
   const refresh = () => setUsers(loadJSON("yugen_users", [] as StoredUser[]));
 
@@ -248,14 +254,32 @@ const UsersTab = () => {
     toast.success("User account removed");
   };
 
+  const filteredUsers = users.filter((u) => {
+    const matchesQ = !q || u.username.toLowerCase().includes(q.toLowerCase()) || u.email.toLowerCase().includes(q.toLowerCase());
+    const isB = banned.includes(u.email);
+    const matchesStatus = statusFilter === "all" || (statusFilter === "banned" ? isB : !isB);
+    return matchesQ && matchesStatus;
+  });
+
   return (
     <div className="bg-card border border-border rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-foreground font-semibold text-sm">{users.length} registered users</h2>
         <button onClick={refresh} className="text-xs text-muted-foreground hover:text-foreground">Refresh</button>
       </div>
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 bg-secondary rounded-md px-2 py-1 flex-1 min-w-[180px]">
+          <Search size={12} className="text-muted-foreground" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name or email…" className="bg-transparent text-xs outline-none text-foreground flex-1" />
+        </div>
+        <div className="flex items-center gap-1 bg-secondary rounded-md p-0.5">
+          {(["all", "active", "banned"] as const).map((s) => (
+            <button key={s} onClick={() => setStatusFilter(s)} className={`text-[11px] font-semibold px-2.5 py-1 rounded transition ${statusFilter === s ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>{s[0].toUpperCase() + s.slice(1)}</button>
+          ))}
+        </div>
+      </div>
       <div className="divide-y divide-border max-h-[500px] overflow-y-auto">
-        {users.map((u) => {
+        {filteredUsers.map((u) => {
           const isB = banned.includes(u.email);
           return (
             <div key={u.email} className="py-2.5 flex items-center gap-3">
@@ -272,7 +296,7 @@ const UsersTab = () => {
             </div>
           );
         })}
-        {users.length === 0 && <p className="text-muted-foreground text-xs py-6 text-center">No registered users yet.</p>}
+        {filteredUsers.length === 0 && <p className="text-muted-foreground text-xs py-6 text-center">No users match your filters.</p>}
       </div>
 
       {target && (
@@ -371,6 +395,152 @@ const BroadcastTab = () => {
       <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="w-full bg-secondary text-sm rounded-md px-3 py-2 outline-none text-foreground" />
       <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} placeholder="Message body" className="w-full bg-secondary text-sm rounded-md px-3 py-2 outline-none text-foreground" />
       <button onClick={send} className="bg-primary text-primary-foreground text-xs font-semibold px-4 py-2 rounded-md flex items-center gap-1"><Send size={12} /> Send broadcast</button>
+    </div>
+  );
+};
+
+/* ---------------- Home Layout ---------------- */
+const HOME_OVERRIDES_KEY = "yugen_home_overrides";
+const SECTIONS: { id: string; label: string; hint: string }[] = [
+  { id: "heroSlides", label: "Hero Slideshow", hint: "Slugs that appear in the homepage hero slideshow (in order)." },
+  { id: "trendingAiring", label: "Trending Airing", hint: "Trending Airing Series section." },
+  { id: "editorsPick", label: "Editor's Pick", hint: "Editor's Pick row." },
+  { id: "underratedSeries", label: "Underrated", hint: "Underrated Series row." },
+  { id: "newOnYugen", label: "New on YugenAnime", hint: "New on YugenAnime row." },
+  { id: "mostPopular", label: "Most Popular", hint: "Most Popular Series row." },
+];
+
+const HomeLayoutTab = () => {
+  const [overrides, setOverrides] = useState<Record<string, string[]>>(() => loadJSON(HOME_OVERRIDES_KEY, {} as Record<string, string[]>));
+  const [drafts, setDrafts] = useState<Record<string, string>>(() => {
+    const init: Record<string, string> = {};
+    SECTIONS.forEach((s) => { init[s.id] = (overrides[s.id] || []).join(", "); });
+    return init;
+  });
+
+  const save = (id: string) => {
+    const slugs = drafts[id].split(",").map((s) => s.trim()).filter(Boolean);
+    const next = { ...overrides, [id]: slugs };
+    setOverrides(next);
+    localStorage.setItem(HOME_OVERRIDES_KEY, JSON.stringify(next));
+    window.dispatchEvent(new Event("yugen-home-overrides-update"));
+    toast.success(`${id} updated`);
+  };
+
+  const reset = (id: string) => {
+    const next = { ...overrides };
+    delete next[id];
+    setOverrides(next);
+    localStorage.setItem(HOME_OVERRIDES_KEY, JSON.stringify(next));
+    setDrafts((d) => ({ ...d, [id]: "" }));
+    window.dispatchEvent(new Event("yugen-home-overrides-update"));
+    toast.success(`${id} reset to default`);
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-muted-foreground text-xs">Enter comma-separated anime slugs for each section. Leave blank to use defaults.</p>
+      {SECTIONS.map((s) => (
+        <section key={s.id} className="bg-card border border-border rounded-lg p-4">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-foreground font-semibold text-sm">{s.label}</h3>
+            <span className="text-[10px] text-muted-foreground">{(overrides[s.id]?.length ?? 0)} custom slugs</span>
+          </div>
+          <p className="text-muted-foreground text-[11px] mb-2">{s.hint}</p>
+          <textarea
+            value={drafts[s.id]}
+            onChange={(e) => setDrafts({ ...drafts, [s.id]: e.target.value })}
+            rows={2}
+            placeholder="frieren, jujutsu-kaisen, one-piece"
+            className="w-full bg-secondary text-sm rounded-md px-3 py-2 outline-none text-foreground"
+          />
+          <div className="flex gap-2 mt-2">
+            <button onClick={() => save(s.id)} className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-md flex items-center gap-1"><Save size={12} /> Save</button>
+            <button onClick={() => reset(s.id)} className="bg-secondary text-foreground text-xs px-3 py-1.5 rounded-md">Reset</button>
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+};
+
+/* ---------------- Admins ---------------- */
+interface AdminLoginRecord { email: string; at: number; userAgent?: string }
+
+const AdminsTab = () => {
+  const [admins, setAdmins] = useState<AdminAccount[]>(() => loadJSON(ADMINS_KEY, [] as AdminAccount[]));
+  const [logins, setLogins] = useState<AdminLoginRecord[]>(() => loadJSON(ADMIN_LOGINS_KEY, [] as AdminLoginRecord[]));
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
+
+  const refresh = () => setLogins(loadJSON(ADMIN_LOGINS_KEY, [] as AdminLoginRecord[]));
+
+  const add = () => {
+    if (!form.email.trim() || !form.password.trim()) return toast.error("Email and password required");
+    if (admins.find((a) => a.email === form.email)) return toast.error("This admin already exists");
+    const next = [...admins, { email: form.email.trim(), password: form.password, name: form.name.trim() || undefined, addedAt: Date.now() }];
+    setAdmins(next);
+    localStorage.setItem(ADMINS_KEY, JSON.stringify(next));
+    toast.success("Admin added");
+    setForm({ name: "", email: "", password: "" });
+  };
+
+  const remove = (email: string) => {
+    const next = admins.filter((a) => a.email !== email);
+    setAdmins(next);
+    localStorage.setItem(ADMINS_KEY, JSON.stringify(next));
+    toast.success("Admin removed");
+  };
+
+  return (
+    <div className="space-y-5">
+      <section className="bg-card border border-border rounded-lg p-4">
+        <h2 className="text-foreground font-semibold text-sm mb-3 flex items-center gap-2"><Plus size={14} /> Add new admin</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name (optional)" className="bg-secondary text-sm rounded-md px-3 py-2 outline-none text-foreground" />
+          <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} type="email" placeholder="Email" className="bg-secondary text-sm rounded-md px-3 py-2 outline-none text-foreground" />
+          <input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} type="text" placeholder="Password" className="bg-secondary text-sm rounded-md px-3 py-2 outline-none text-foreground" />
+        </div>
+        <button onClick={add} className="mt-3 bg-primary text-primary-foreground text-xs font-semibold px-4 py-2 rounded-md">Add admin</button>
+      </section>
+
+      <section className="bg-card border border-border rounded-lg p-4">
+        <h2 className="text-foreground font-semibold text-sm mb-3">Admin accounts ({admins.length})</h2>
+        <div className="divide-y divide-border">
+          <div className="py-2 flex items-center gap-3">
+            <div className="flex-1">
+              <p className="text-foreground text-sm font-medium">Owner</p>
+              <p className="text-muted-foreground text-[11px]">yugenanimecc@gmail.com · primary admin</p>
+            </div>
+            <span className="text-[10px] text-muted-foreground">protected</span>
+          </div>
+          {admins.map((a) => (
+            <div key={a.email} className="py-2 flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-foreground text-sm font-medium truncate">{a.name || "Admin"}</p>
+                <p className="text-muted-foreground text-[11px] truncate">{a.email} · added {new Date(a.addedAt).toLocaleDateString()}</p>
+              </div>
+              <button onClick={() => remove(a.email)} className="text-destructive text-xs hover:underline flex items-center gap-1"><Trash2 size={12} /> Remove</button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="bg-card border border-border rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-foreground font-semibold text-sm">Admin login history</h2>
+          <button onClick={refresh} className="text-xs text-muted-foreground hover:text-foreground">Refresh</button>
+        </div>
+        <div className="max-h-[360px] overflow-y-auto divide-y divide-border">
+          {logins.length === 0 && <p className="text-muted-foreground text-xs py-6 text-center">No admin logins recorded yet.</p>}
+          {logins.map((l, i) => (
+            <div key={i} className="py-2">
+              <p className="text-foreground text-xs font-medium">{l.email}</p>
+              <p className="text-muted-foreground text-[10px]">{new Date(l.at).toLocaleString("en-GB", { hour12: false })}</p>
+              {l.userAgent && <p className="text-muted-foreground/70 text-[10px] truncate">{l.userAgent}</p>}
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 };
