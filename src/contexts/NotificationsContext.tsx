@@ -8,6 +8,7 @@ export interface AppNotification {
   type: "admin" | "release" | "system";
   createdAt: number;
   read?: boolean;
+  readAt?: number;
   link?: string;
 }
 
@@ -38,7 +39,12 @@ export const NotificationsProvider = ({ children }: { children: ReactNode }) => 
 
   const load = useCallback(() => {
     if (!key) { setNotifications([]); return; }
-    const personal: AppNotification[] = JSON.parse(localStorage.getItem(key) || "[]");
+    let personal: AppNotification[] = JSON.parse(localStorage.getItem(key) || "[]");
+    // Auto-dismiss release notifications 30s after being read.
+    const now = Date.now();
+    const before = personal.length;
+    personal = personal.filter((n) => !(n.type === "release" && n.readAt && now - n.readAt > 30_000));
+    if (personal.length !== before) localStorage.setItem(key, JSON.stringify(personal));
     const global: AppNotification[] = JSON.parse(localStorage.getItem(GLOBAL_KEY) || "[]");
     const dismissed: string[] = JSON.parse(localStorage.getItem(`${key}_dismissed`) || "[]");
     const merged = [...personal, ...global.filter((g) => !dismissed.includes(g.id))]
@@ -47,6 +53,12 @@ export const NotificationsProvider = ({ children }: { children: ReactNode }) => 
   }, [key]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Re-evaluate periodically so read release notifications disappear after 30s.
+  useEffect(() => {
+    const id = setInterval(() => load(), 5000);
+    return () => clearInterval(id);
+  }, [load]);
 
   useEffect(() => {
     const handler = () => load();
@@ -126,12 +138,13 @@ export const NotificationsProvider = ({ children }: { children: ReactNode }) => 
   const markAllRead = () => {
     if (!key) return;
     const personal: AppNotification[] = JSON.parse(localStorage.getItem(key) || "[]");
-    localStorage.setItem(key, JSON.stringify(personal.map((n) => ({ ...n, read: true }))));
+    const now = Date.now();
+    localStorage.setItem(key, JSON.stringify(personal.map((n) => ({ ...n, read: true, readAt: n.readAt ?? now }))));
     const readSet: string[] = JSON.parse(localStorage.getItem(`${key}_read_global`) || "[]");
     const global: AppNotification[] = JSON.parse(localStorage.getItem(GLOBAL_KEY) || "[]");
     const merged = Array.from(new Set([...readSet, ...global.map((g) => g.id)]));
     localStorage.setItem(`${key}_read_global`, JSON.stringify(merged));
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true, readAt: n.readAt ?? now })));
   };
 
   const clearAll = () => {
