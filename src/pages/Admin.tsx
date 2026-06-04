@@ -217,6 +217,8 @@ const UsersTab = () => {
   const [banned, setBanned] = useState<string[]>(() => loadJSON(BAN_KEY, [] as string[]));
   const [target, setTarget] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [q, setQ] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "banned">("all");
 
   const refresh = () => setUsers(loadJSON("yugen_users", [] as StoredUser[]));
 
@@ -252,14 +254,32 @@ const UsersTab = () => {
     toast.success("User account removed");
   };
 
+  const filteredUsers = users.filter((u) => {
+    const matchesQ = !q || u.username.toLowerCase().includes(q.toLowerCase()) || u.email.toLowerCase().includes(q.toLowerCase());
+    const isB = banned.includes(u.email);
+    const matchesStatus = statusFilter === "all" || (statusFilter === "banned" ? isB : !isB);
+    return matchesQ && matchesStatus;
+  });
+
   return (
     <div className="bg-card border border-border rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-foreground font-semibold text-sm">{users.length} registered users</h2>
         <button onClick={refresh} className="text-xs text-muted-foreground hover:text-foreground">Refresh</button>
       </div>
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 bg-secondary rounded-md px-2 py-1 flex-1 min-w-[180px]">
+          <Search size={12} className="text-muted-foreground" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name or email…" className="bg-transparent text-xs outline-none text-foreground flex-1" />
+        </div>
+        <div className="flex items-center gap-1 bg-secondary rounded-md p-0.5">
+          {(["all", "active", "banned"] as const).map((s) => (
+            <button key={s} onClick={() => setStatusFilter(s)} className={`text-[11px] font-semibold px-2.5 py-1 rounded transition ${statusFilter === s ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>{s[0].toUpperCase() + s.slice(1)}</button>
+          ))}
+        </div>
+      </div>
       <div className="divide-y divide-border max-h-[500px] overflow-y-auto">
-        {users.map((u) => {
+        {filteredUsers.map((u) => {
           const isB = banned.includes(u.email);
           return (
             <div key={u.email} className="py-2.5 flex items-center gap-3">
@@ -276,7 +296,7 @@ const UsersTab = () => {
             </div>
           );
         })}
-        {users.length === 0 && <p className="text-muted-foreground text-xs py-6 text-center">No registered users yet.</p>}
+        {filteredUsers.length === 0 && <p className="text-muted-foreground text-xs py-6 text-center">No users match your filters.</p>}
       </div>
 
       {target && (
