@@ -399,4 +399,150 @@ const BroadcastTab = () => {
   );
 };
 
+/* ---------------- Home Layout ---------------- */
+const HOME_OVERRIDES_KEY = "yugen_home_overrides";
+const SECTIONS: { id: string; label: string; hint: string }[] = [
+  { id: "heroSlides", label: "Hero Slideshow", hint: "Slugs that appear in the homepage hero slideshow (in order)." },
+  { id: "trendingAiring", label: "Trending Airing", hint: "Trending Airing Series section." },
+  { id: "editorsPick", label: "Editor's Pick", hint: "Editor's Pick row." },
+  { id: "underratedSeries", label: "Underrated", hint: "Underrated Series row." },
+  { id: "newOnYugen", label: "New on YugenAnime", hint: "New on YugenAnime row." },
+  { id: "mostPopular", label: "Most Popular", hint: "Most Popular Series row." },
+];
+
+const HomeLayoutTab = () => {
+  const [overrides, setOverrides] = useState<Record<string, string[]>>(() => loadJSON(HOME_OVERRIDES_KEY, {} as Record<string, string[]>));
+  const [drafts, setDrafts] = useState<Record<string, string>>(() => {
+    const init: Record<string, string> = {};
+    SECTIONS.forEach((s) => { init[s.id] = (overrides[s.id] || []).join(", "); });
+    return init;
+  });
+
+  const save = (id: string) => {
+    const slugs = drafts[id].split(",").map((s) => s.trim()).filter(Boolean);
+    const next = { ...overrides, [id]: slugs };
+    setOverrides(next);
+    localStorage.setItem(HOME_OVERRIDES_KEY, JSON.stringify(next));
+    window.dispatchEvent(new Event("yugen-home-overrides-update"));
+    toast.success(`${id} updated`);
+  };
+
+  const reset = (id: string) => {
+    const next = { ...overrides };
+    delete next[id];
+    setOverrides(next);
+    localStorage.setItem(HOME_OVERRIDES_KEY, JSON.stringify(next));
+    setDrafts((d) => ({ ...d, [id]: "" }));
+    window.dispatchEvent(new Event("yugen-home-overrides-update"));
+    toast.success(`${id} reset to default`);
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-muted-foreground text-xs">Enter comma-separated anime slugs for each section. Leave blank to use defaults.</p>
+      {SECTIONS.map((s) => (
+        <section key={s.id} className="bg-card border border-border rounded-lg p-4">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-foreground font-semibold text-sm">{s.label}</h3>
+            <span className="text-[10px] text-muted-foreground">{(overrides[s.id]?.length ?? 0)} custom slugs</span>
+          </div>
+          <p className="text-muted-foreground text-[11px] mb-2">{s.hint}</p>
+          <textarea
+            value={drafts[s.id]}
+            onChange={(e) => setDrafts({ ...drafts, [s.id]: e.target.value })}
+            rows={2}
+            placeholder="frieren, jujutsu-kaisen, one-piece"
+            className="w-full bg-secondary text-sm rounded-md px-3 py-2 outline-none text-foreground"
+          />
+          <div className="flex gap-2 mt-2">
+            <button onClick={() => save(s.id)} className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-md flex items-center gap-1"><Save size={12} /> Save</button>
+            <button onClick={() => reset(s.id)} className="bg-secondary text-foreground text-xs px-3 py-1.5 rounded-md">Reset</button>
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+};
+
+/* ---------------- Admins ---------------- */
+interface AdminLoginRecord { email: string; at: number; userAgent?: string }
+
+const AdminsTab = () => {
+  const [admins, setAdmins] = useState<AdminAccount[]>(() => loadJSON(ADMINS_KEY, [] as AdminAccount[]));
+  const [logins, setLogins] = useState<AdminLoginRecord[]>(() => loadJSON(ADMIN_LOGINS_KEY, [] as AdminLoginRecord[]));
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
+
+  const refresh = () => setLogins(loadJSON(ADMIN_LOGINS_KEY, [] as AdminLoginRecord[]));
+
+  const add = () => {
+    if (!form.email.trim() || !form.password.trim()) return toast.error("Email and password required");
+    if (admins.find((a) => a.email === form.email)) return toast.error("This admin already exists");
+    const next = [...admins, { email: form.email.trim(), password: form.password, name: form.name.trim() || undefined, addedAt: Date.now() }];
+    setAdmins(next);
+    localStorage.setItem(ADMINS_KEY, JSON.stringify(next));
+    toast.success("Admin added");
+    setForm({ name: "", email: "", password: "" });
+  };
+
+  const remove = (email: string) => {
+    const next = admins.filter((a) => a.email !== email);
+    setAdmins(next);
+    localStorage.setItem(ADMINS_KEY, JSON.stringify(next));
+    toast.success("Admin removed");
+  };
+
+  return (
+    <div className="space-y-5">
+      <section className="bg-card border border-border rounded-lg p-4">
+        <h2 className="text-foreground font-semibold text-sm mb-3 flex items-center gap-2"><Plus size={14} /> Add new admin</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name (optional)" className="bg-secondary text-sm rounded-md px-3 py-2 outline-none text-foreground" />
+          <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} type="email" placeholder="Email" className="bg-secondary text-sm rounded-md px-3 py-2 outline-none text-foreground" />
+          <input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} type="text" placeholder="Password" className="bg-secondary text-sm rounded-md px-3 py-2 outline-none text-foreground" />
+        </div>
+        <button onClick={add} className="mt-3 bg-primary text-primary-foreground text-xs font-semibold px-4 py-2 rounded-md">Add admin</button>
+      </section>
+
+      <section className="bg-card border border-border rounded-lg p-4">
+        <h2 className="text-foreground font-semibold text-sm mb-3">Admin accounts ({admins.length})</h2>
+        <div className="divide-y divide-border">
+          <div className="py-2 flex items-center gap-3">
+            <div className="flex-1">
+              <p className="text-foreground text-sm font-medium">Owner</p>
+              <p className="text-muted-foreground text-[11px]">yugenanimecc@gmail.com · primary admin</p>
+            </div>
+            <span className="text-[10px] text-muted-foreground">protected</span>
+          </div>
+          {admins.map((a) => (
+            <div key={a.email} className="py-2 flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-foreground text-sm font-medium truncate">{a.name || "Admin"}</p>
+                <p className="text-muted-foreground text-[11px] truncate">{a.email} · added {new Date(a.addedAt).toLocaleDateString()}</p>
+              </div>
+              <button onClick={() => remove(a.email)} className="text-destructive text-xs hover:underline flex items-center gap-1"><Trash2 size={12} /> Remove</button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="bg-card border border-border rounded-lg p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-foreground font-semibold text-sm">Admin login history</h2>
+          <button onClick={refresh} className="text-xs text-muted-foreground hover:text-foreground">Refresh</button>
+        </div>
+        <div className="max-h-[360px] overflow-y-auto divide-y divide-border">
+          {logins.length === 0 && <p className="text-muted-foreground text-xs py-6 text-center">No admin logins recorded yet.</p>}
+          {logins.map((l, i) => (
+            <div key={i} className="py-2">
+              <p className="text-foreground text-xs font-medium">{l.email}</p>
+              <p className="text-muted-foreground text-[10px]">{new Date(l.at).toLocaleString("en-GB", { hour12: false })}</p>
+              {l.userAgent && <p className="text-muted-foreground/70 text-[10px] truncate">{l.userAgent}</p>}
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+};
+
 export default Admin;
