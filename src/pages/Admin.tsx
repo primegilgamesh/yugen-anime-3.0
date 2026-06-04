@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import Sidebar from "@/components/Sidebar";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, ADMINS_KEY, ADMIN_LOGINS_KEY, AdminAccount } from "@/contexts/AuthContext";
 import { broadcastAdminNotification } from "@/contexts/NotificationsContext";
 import { allAnime } from "@/data/animeData";
 import { aggregateAnimeStats } from "@/lib/animeStats";
@@ -47,7 +47,7 @@ const AdminLoginGate = () => {
   );
 };
 
-type Tab = "animes" | "users" | "stats" | "broadcast";
+type Tab = "animes" | "users" | "stats" | "broadcast" | "home" | "admins";
 
 const Admin = () => {
   const { isAdmin, isLoggedIn } = useAuth();
@@ -78,6 +78,8 @@ const Admin = () => {
               ["users", "Users"],
               ["stats", "Statistics"],
               ["broadcast", "Broadcast"],
+              ["home", "Home Layout"],
+              ["admins", "Admins"],
             ] as [Tab, string][]).map(([id, label]) => (
               <button key={id} onClick={() => setTab(id)} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${tab === id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>{label}</button>
             ))}
@@ -86,6 +88,8 @@ const Admin = () => {
           {tab === "users" && <UsersTab />}
           {tab === "stats" && <StatsTab />}
           {tab === "broadcast" && <BroadcastTab />}
+          {tab === "home" && <HomeLayoutTab />}
+          {tab === "admins" && <AdminsTab />}
         </main>
       </div>
     </div>
