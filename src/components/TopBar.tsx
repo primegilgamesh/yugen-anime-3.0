@@ -231,7 +231,7 @@ const TopBar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-            <a href="https://discord.gg/lovable-dev" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
+            <a href="https://discord.gg/QeSDmAtueD" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
               <DiscordIcon />
             </a>
             {isLoggedIn ? (
