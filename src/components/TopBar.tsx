@@ -38,7 +38,7 @@ const TopBar = () => {
 
   useEffect(() => {
     if (searchQuery.trim().length > 0) {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery.toLowerCase().trim();
       const results = allAnime.filter((a) =>
         a.title.toLowerCase().includes(q) ||
         a.titleEnglish?.toLowerCase().includes(q) ||
