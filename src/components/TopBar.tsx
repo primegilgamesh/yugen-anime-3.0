@@ -38,12 +38,12 @@ const TopBar = () => {
 
   useEffect(() => {
     if (searchQuery.trim().length > 0) {
-      const q = searchQuery.toLowerCase().trim();
-      const results = allAnime.filter((a) =>
-        a.title.toLowerCase().includes(q) ||
-        a.titleEnglish?.toLowerCase().includes(q) ||
-        a.titleRomaji?.toLowerCase().includes(q)
-      ).slice(0, 8);
+      const tokens = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      const results = allAnime.filter((a) => {
+        const haystack = [a.title, a.titleEnglish, a.titleRomaji, (a as any).titleNative, (a as any).synonyms]
+          .filter(Boolean).join(" ").toLowerCase();
+        return tokens.every((t) => haystack.includes(t));
+      }).slice(0, 8);
       setSearchResults(results);
     } else {
       setSearchResults([]);

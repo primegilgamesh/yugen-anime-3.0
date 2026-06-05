@@ -54,8 +54,10 @@ const Discover = () => {
 
   const filteredAnime = allAnime.filter((a) => {
     if (search) {
-      const q = search.toLowerCase().trim();
-      if (!a.title.toLowerCase().includes(q) && !a.titleEnglish?.toLowerCase().includes(q) && !a.titleRomaji?.toLowerCase().includes(q)) return false;
+      const haystack = [a.title, a.titleEnglish, a.titleRomaji, a.titleNative, a.synonyms]
+        .filter(Boolean).join(" ").toLowerCase();
+      const tokens = search.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      if (!tokens.every((t) => haystack.includes(t))) return false;
     }
     if (selectedGenres.length > 0 && !selectedGenres.some((g) => a.genres?.includes(g))) return false;
     if (season !== "Any" && !a.season?.startsWith(season)) return false;
