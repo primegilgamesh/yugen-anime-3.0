@@ -2,14 +2,15 @@ import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import Sidebar from "@/components/Sidebar";
-import { useAuth, ADMINS_KEY, ADMIN_LOGINS_KEY, AdminAccount } from "@/contexts/AuthContext";
+import { useAuth, ADMINS_KEY, ADMIN_LOGINS_KEY, AdminAccount, loadAdmins, saveAdmins, setOwnerPassword } from "@/contexts/AuthContext";
+import { loadUsers, saveUsers, SecureUser } from "@/lib/cryptoStore";
 import { broadcastAdminNotification } from "@/contexts/NotificationsContext";
 import { allAnime } from "@/data/animeData";
 import { aggregateAnimeStats } from "@/lib/animeStats";
 import { toast } from "sonner";
 import { Ban, CheckCircle2, Send, Trash2, Plus, Save, Search } from "lucide-react";
 
-interface StoredUser { username: string; email: string; password: string; avatar: string }
+type StoredUser = SecureUser;
 interface CustomAnime { slug: string; title: string; synopsis?: string; genres?: string; episodes?: number; createdAt: number }
 interface AnimeOverride { synopsis?: string; genres?: string; episodes?: number; title?: string }
 
@@ -213,14 +214,14 @@ const AnimesTab = () => {
 
 /* ---------------- Users ---------------- */
 const UsersTab = () => {
-  const [users, setUsers] = useState<StoredUser[]>(() => loadJSON("yugen_users", [] as StoredUser[]));
+  const [users, setUsers] = useState<StoredUser[]>(() => loadUsers());
   const [banned, setBanned] = useState<string[]>(() => loadJSON(BAN_KEY, [] as string[]));
   const [target, setTarget] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "banned">("all");
 
-  const refresh = () => setUsers(loadJSON("yugen_users", [] as StoredUser[]));
+  const refresh = () => setUsers(loadUsers());
 
   const toggleBan = (email: string) => {
     const next = banned.includes(email) ? banned.filter((e) => e !== email) : [...banned, email];
@@ -250,7 +251,7 @@ const UsersTab = () => {
   const deleteUser = (email: string) => {
     const next = users.filter((u) => u.email !== email);
     setUsers(next);
-    localStorage.setItem("yugen_users", JSON.stringify(next));
+    saveUsers(next);
     toast.success("User account removed");
   };
 
@@ -333,7 +334,7 @@ const StatsTab = () => {
         <StatCard label="Favorites" value={totals.fav} />
         <StatCard label="List entries" value={totals.list} />
         <StatCard label="Animes" value={allAnime.length} />
-        <StatCard label="Users" value={loadJSON("yugen_users", [] as StoredUser[]).length} />
+        <StatCard label="Users" value={loadUsers().length} />
       </div>
       <div className="bg-card border border-border rounded-lg p-4">
         <div className="flex items-center gap-2 mb-3">
