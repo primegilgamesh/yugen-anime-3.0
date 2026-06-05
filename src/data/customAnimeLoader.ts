@@ -1,7 +1,7 @@
 import { allAnime, AnimeEntry } from "./animeData";
 
-// Load custom animes added via the Admin panel and merge them into the global list
-// so they have full pages, appear in search, and show up in recently-released feeds.
+// Load custom animes + admin overrides and apply them to the global list so they
+// have full pages, appear in search, and show up in recently-released feeds.
 const gradientPool = [
   "from-blue-600 to-purple-700",
   "from-rose-600 to-orange-500",
@@ -34,5 +34,20 @@ if (typeof window !== "undefined") {
       };
       allAnime.push(stub);
     });
+  } catch {}
+
+  // Apply admin overrides (title/synopsis/genres/episodes) to every section/page.
+  try {
+    const overrides: Record<string, Partial<AnimeEntry>> =
+      JSON.parse(localStorage.getItem("yugen_anime_overrides") || "{}");
+    for (const slug of Object.keys(overrides)) {
+      const o = overrides[slug] || {};
+      const target = allAnime.find((a) => a.slug === slug);
+      if (!target) continue;
+      if (o.title) { target.title = o.title; target.titleEnglish = o.title; }
+      if (o.synopsis !== undefined) target.synopsis = o.synopsis;
+      if (o.genres !== undefined) target.genres = o.genres;
+      if (o.episodes !== undefined) target.episodes = o.episodes;
+    }
   } catch {}
 }

@@ -2,14 +2,15 @@ import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import Sidebar from "@/components/Sidebar";
-import { useAuth, ADMINS_KEY, ADMIN_LOGINS_KEY, AdminAccount } from "@/contexts/AuthContext";
+import { useAuth, ADMINS_KEY, ADMIN_LOGINS_KEY, AdminAccount, loadAdmins, saveAdmins, setOwnerPassword } from "@/contexts/AuthContext";
+import { loadUsers, saveUsers, SecureUser } from "@/lib/cryptoStore";
 import { broadcastAdminNotification } from "@/contexts/NotificationsContext";
 import { allAnime } from "@/data/animeData";
 import { aggregateAnimeStats } from "@/lib/animeStats";
 import { toast } from "sonner";
 import { Ban, CheckCircle2, Send, Trash2, Plus, Save, Search } from "lucide-react";
 
-interface StoredUser { username: string; email: string; password: string; avatar: string }
+type StoredUser = SecureUser;
 interface CustomAnime { slug: string; title: string; synopsis?: string; genres?: string; episodes?: number; createdAt: number }
 interface AnimeOverride { synopsis?: string; genres?: string; episodes?: number; title?: string }
 
@@ -213,14 +214,14 @@ const AnimesTab = () => {
 
 /* ---------------- Users ---------------- */
 const UsersTab = () => {
-  const [users, setUsers] = useState<StoredUser[]>(() => loadJSON("yugen_users", [] as StoredUser[]));
+  const [users, setUsers] = useState<StoredUser[]>(() => loadUsers());
   const [banned, setBanned] = useState<string[]>(() => loadJSON(BAN_KEY, [] as string[]));
   const [target, setTarget] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "banned">("all");
 
-  const refresh = () => setUsers(loadJSON("yugen_users", [] as StoredUser[]));
+  const refresh = () => setUsers(loadUsers());
 
   const toggleBan = (email: string) => {
     const next = banned.includes(email) ? banned.filter((e) => e !== email) : [...banned, email];
@@ -250,7 +251,7 @@ const UsersTab = () => {
   const deleteUser = (email: string) => {
     const next = users.filter((u) => u.email !== email);
     setUsers(next);
-    localStorage.setItem("yugen_users", JSON.stringify(next));
+    saveUsers(next);
     toast.success("User account removed");
   };
 
@@ -333,7 +334,7 @@ const StatsTab = () => {
         <StatCard label="Favorites" value={totals.fav} />
         <StatCard label="List entries" value={totals.list} />
         <StatCard label="Animes" value={allAnime.length} />
-        <StatCard label="Users" value={loadJSON("yugen_users", [] as StoredUser[]).length} />
+        <StatCard label="Users" value={loadUsers().length} />
       </div>
       <div className="bg-card border border-border rounded-lg p-4">
         <div className="flex items-center gap-2 mb-3">
@@ -468,9 +469,12 @@ const HomeLayoutTab = () => {
 interface AdminLoginRecord { email: string; at: number; userAgent?: string }
 
 const AdminsTab = () => {
-  const [admins, setAdmins] = useState<AdminAccount[]>(() => loadJSON(ADMINS_KEY, [] as AdminAccount[]));
+  const [admins, setAdmins] = useState<AdminAccount[]>(() => loadAdmins());
   const [logins, setLogins] = useState<AdminLoginRecord[]>(() => loadJSON(ADMIN_LOGINS_KEY, [] as AdminLoginRecord[]));
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [editingPw, setEditingPw] = useState<string | null>(null);
+  const [pwDraft, setPwDraft] = useState("");
+  const [ownerPw, setOwnerPw] = useState("");
 
   const refresh = () => setLogins(loadJSON(ADMIN_LOGINS_KEY, [] as AdminLoginRecord[]));
 
@@ -479,7 +483,7 @@ const AdminsTab = () => {
     if (admins.find((a) => a.email === form.email)) return toast.error("This admin already exists");
     const next = [...admins, { email: form.email.trim(), password: form.password, name: form.name.trim() || undefined, addedAt: Date.now() }];
     setAdmins(next);
-    localStorage.setItem(ADMINS_KEY, JSON.stringify(next));
+    saveAdmins(next);
     toast.success("Admin added");
     setForm({ name: "", email: "", password: "" });
   };
@@ -487,8 +491,25 @@ const AdminsTab = () => {
   const remove = (email: string) => {
     const next = admins.filter((a) => a.email !== email);
     setAdmins(next);
-    localStorage.setItem(ADMINS_KEY, JSON.stringify(next));
+    saveAdmins(next);
     toast.success("Admin removed");
+  };
+
+  const savePw = (email: string) => {
+    if (pwDraft.length < 6) return toast.error("Password must be at least 6 characters");
+    const next = admins.map((a) => a.email === email ? { ...a, password: pwDraft } : a);
+    setAdmins(next);
+    saveAdmins(next);
+    setEditingPw(null);
+    setPwDraft("");
+    toast.success("Admin password updated");
+  };
+
+  const saveOwnerPw = () => {
+    if (ownerPw.length < 6) return toast.error("Password must be at least 6 characters");
+    setOwnerPassword(ownerPw);
+    setOwnerPw("");
+    toast.success("Owner password updated");
   };
 
   return (
@@ -506,19 +527,34 @@ const AdminsTab = () => {
       <section className="bg-card border border-border rounded-lg p-4">
         <h2 className="text-foreground font-semibold text-sm mb-3">Admin accounts ({admins.length})</h2>
         <div className="divide-y divide-border">
-          <div className="py-2 flex items-center gap-3">
-            <div className="flex-1">
+          <div className="py-2 flex items-center gap-3 flex-wrap">
+            <div className="flex-1 min-w-[160px]">
               <p className="text-foreground text-sm font-medium">Owner</p>
               <p className="text-muted-foreground text-[11px]">yugenanimecc@gmail.com · primary admin</p>
             </div>
-            <span className="text-[10px] text-muted-foreground">protected</span>
+            <input
+              type="password"
+              value={ownerPw}
+              onChange={(e) => setOwnerPw(e.target.value)}
+              placeholder="New owner password"
+              className="bg-secondary text-foreground text-xs rounded-md px-2 py-1.5 outline-none w-44"
+            />
+            <button onClick={saveOwnerPw} className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-md flex items-center gap-1"><Save size={12} /> Save</button>
           </div>
           {admins.map((a) => (
-            <div key={a.email} className="py-2 flex items-center gap-3">
+            <div key={a.email} className="py-2 flex items-center gap-3 flex-wrap">
               <div className="flex-1 min-w-0">
                 <p className="text-foreground text-sm font-medium truncate">{a.name || "Admin"}</p>
                 <p className="text-muted-foreground text-[11px] truncate">{a.email} · added {new Date(a.addedAt).toLocaleDateString()}</p>
+                {editingPw === a.email && (
+                  <div className="mt-2 flex gap-2">
+                    <input type="password" value={pwDraft} onChange={(e) => setPwDraft(e.target.value)} placeholder="New password" className="bg-background text-foreground text-xs rounded-md px-2 py-1.5 outline-none flex-1" />
+                    <button onClick={() => savePw(a.email)} className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-md">Save</button>
+                    <button onClick={() => { setEditingPw(null); setPwDraft(""); }} className="bg-secondary text-foreground text-xs px-3 py-1.5 rounded-md">Cancel</button>
+                  </div>
+                )}
               </div>
+              <button onClick={() => { setEditingPw(a.email); setPwDraft(""); }} className="text-primary text-xs hover:underline">Change password</button>
               <button onClick={() => remove(a.email)} className="text-destructive text-xs hover:underline flex items-center gap-1"><Trash2 size={12} /> Remove</button>
             </div>
           ))}

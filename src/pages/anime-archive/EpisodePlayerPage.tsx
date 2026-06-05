@@ -14,6 +14,10 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
 const EpisodePlayerPage = () => {
@@ -101,21 +105,20 @@ const EpisodePlayerPage = () => {
                 <DropdownMenuTrigger asChild>
                   <button className="hover:text-primary transition" aria-label="Settings"><Settings size={16} /></button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 p-3 bg-card border-border">
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-foreground text-xs font-semibold block mb-1">Subtitles</label>
-                      <select value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="w-full bg-secondary text-foreground text-xs rounded px-2 py-1.5 border border-border focus:outline-none focus:border-primary cursor-pointer">
-                        {["Off", "English", "Spanish", "Japanese", "French", "German"].map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-foreground text-xs font-semibold block mb-1">Resolution</label>
-                      <select value={resolution} onChange={(e) => setResolution(e.target.value)} className="w-full bg-secondary text-foreground text-xs rounded px-2 py-1.5 border border-border focus:outline-none focus:border-primary cursor-pointer">
-                        {["Auto", "1080p", "720p", "480p", "360p"].map((r) => <option key={r} value={r}>{r}</option>)}
-                      </select>
-                    </div>
-                  </div>
+                <DropdownMenuContent align="end" className="w-52 bg-card border-border">
+                  <DropdownMenuLabel className="text-foreground text-xs">Subtitles</DropdownMenuLabel>
+                  <DropdownMenuRadioGroup value={subtitle} onValueChange={setSubtitle}>
+                    {["Off", "English", "Spanish", "Japanese", "French", "German"].map((s) => (
+                      <DropdownMenuRadioItem key={s} value={s} className="text-xs">{s}</DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-foreground text-xs">Resolution</DropdownMenuLabel>
+                  <DropdownMenuRadioGroup value={resolution} onValueChange={setResolution}>
+                    {["Auto", "1080p", "720p", "480p", "360p"].map((r) => (
+                      <DropdownMenuRadioItem key={r} value={r} className="text-xs">{r}</DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
               <button onClick={toggleFullscreen} className="hover:text-primary transition" aria-label="Fullscreen"><Maximize size={16} /></button>
