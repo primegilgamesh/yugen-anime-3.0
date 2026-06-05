@@ -469,9 +469,12 @@ const HomeLayoutTab = () => {
 interface AdminLoginRecord { email: string; at: number; userAgent?: string }
 
 const AdminsTab = () => {
-  const [admins, setAdmins] = useState<AdminAccount[]>(() => loadJSON(ADMINS_KEY, [] as AdminAccount[]));
+  const [admins, setAdmins] = useState<AdminAccount[]>(() => loadAdmins());
   const [logins, setLogins] = useState<AdminLoginRecord[]>(() => loadJSON(ADMIN_LOGINS_KEY, [] as AdminLoginRecord[]));
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [editingPw, setEditingPw] = useState<string | null>(null);
+  const [pwDraft, setPwDraft] = useState("");
+  const [ownerPw, setOwnerPw] = useState("");
 
   const refresh = () => setLogins(loadJSON(ADMIN_LOGINS_KEY, [] as AdminLoginRecord[]));
 
@@ -480,7 +483,7 @@ const AdminsTab = () => {
     if (admins.find((a) => a.email === form.email)) return toast.error("This admin already exists");
     const next = [...admins, { email: form.email.trim(), password: form.password, name: form.name.trim() || undefined, addedAt: Date.now() }];
     setAdmins(next);
-    localStorage.setItem(ADMINS_KEY, JSON.stringify(next));
+    saveAdmins(next);
     toast.success("Admin added");
     setForm({ name: "", email: "", password: "" });
   };
@@ -488,8 +491,25 @@ const AdminsTab = () => {
   const remove = (email: string) => {
     const next = admins.filter((a) => a.email !== email);
     setAdmins(next);
-    localStorage.setItem(ADMINS_KEY, JSON.stringify(next));
+    saveAdmins(next);
     toast.success("Admin removed");
+  };
+
+  const savePw = (email: string) => {
+    if (pwDraft.length < 6) return toast.error("Password must be at least 6 characters");
+    const next = admins.map((a) => a.email === email ? { ...a, password: pwDraft } : a);
+    setAdmins(next);
+    saveAdmins(next);
+    setEditingPw(null);
+    setPwDraft("");
+    toast.success("Admin password updated");
+  };
+
+  const saveOwnerPw = () => {
+    if (ownerPw.length < 6) return toast.error("Password must be at least 6 characters");
+    setOwnerPassword(ownerPw);
+    setOwnerPw("");
+    toast.success("Owner password updated");
   };
 
   return (
@@ -507,19 +527,34 @@ const AdminsTab = () => {
       <section className="bg-card border border-border rounded-lg p-4">
         <h2 className="text-foreground font-semibold text-sm mb-3">Admin accounts ({admins.length})</h2>
         <div className="divide-y divide-border">
-          <div className="py-2 flex items-center gap-3">
-            <div className="flex-1">
+          <div className="py-2 flex items-center gap-3 flex-wrap">
+            <div className="flex-1 min-w-[160px]">
               <p className="text-foreground text-sm font-medium">Owner</p>
               <p className="text-muted-foreground text-[11px]">yugenanimecc@gmail.com · primary admin</p>
             </div>
-            <span className="text-[10px] text-muted-foreground">protected</span>
+            <input
+              type="password"
+              value={ownerPw}
+              onChange={(e) => setOwnerPw(e.target.value)}
+              placeholder="New owner password"
+              className="bg-secondary text-foreground text-xs rounded-md px-2 py-1.5 outline-none w-44"
+            />
+            <button onClick={saveOwnerPw} className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-md flex items-center gap-1"><Save size={12} /> Save</button>
           </div>
           {admins.map((a) => (
-            <div key={a.email} className="py-2 flex items-center gap-3">
+            <div key={a.email} className="py-2 flex items-center gap-3 flex-wrap">
               <div className="flex-1 min-w-0">
                 <p className="text-foreground text-sm font-medium truncate">{a.name || "Admin"}</p>
                 <p className="text-muted-foreground text-[11px] truncate">{a.email} · added {new Date(a.addedAt).toLocaleDateString()}</p>
+                {editingPw === a.email && (
+                  <div className="mt-2 flex gap-2">
+                    <input type="password" value={pwDraft} onChange={(e) => setPwDraft(e.target.value)} placeholder="New password" className="bg-background text-foreground text-xs rounded-md px-2 py-1.5 outline-none flex-1" />
+                    <button onClick={() => savePw(a.email)} className="bg-primary text-primary-foreground text-xs px-3 py-1.5 rounded-md">Save</button>
+                    <button onClick={() => { setEditingPw(null); setPwDraft(""); }} className="bg-secondary text-foreground text-xs px-3 py-1.5 rounded-md">Cancel</button>
+                  </div>
+                )}
               </div>
+              <button onClick={() => { setEditingPw(a.email); setPwDraft(""); }} className="text-primary text-xs hover:underline">Change password</button>
               <button onClick={() => remove(a.email)} className="text-destructive text-xs hover:underline flex items-center gap-1"><Trash2 size={12} /> Remove</button>
             </div>
           ))}
