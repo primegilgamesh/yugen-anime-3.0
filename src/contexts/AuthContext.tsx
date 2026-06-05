@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { loadUsers, saveUsers, SecureUser, encryptField } from "@/lib/cryptoStore";
+import { loadUsers, saveUsers, SecureUser, encryptField, decryptField } from "@/lib/cryptoStore";
 
 export interface User {
   username: string;
@@ -64,7 +64,6 @@ const getOwnerPassword = (): string => {
   try {
     const stored = localStorage.getItem(OWNER_PASSWORD_KEY);
     if (stored && stored.startsWith("enc:")) {
-      const { decryptField } = require("@/lib/cryptoStore");
       return decryptField(stored);
     }
     return stored || DEFAULT_ADMIN_PASSWORD;
@@ -96,7 +95,6 @@ const findExtraAdmin = (email: string, password: string): AdminAccount | null =>
 export const loadAdmins = (): AdminAccount[] => {
   try {
     const raw: any[] = JSON.parse(localStorage.getItem(ADMINS_KEY) || "[]");
-    const { decryptField } = require("@/lib/cryptoStore");
     return raw.map((a) => ({
       email: decryptField(a.email),
       password: decryptField(a.password),
