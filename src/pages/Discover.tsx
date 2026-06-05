@@ -54,7 +54,7 @@ const Discover = () => {
 
   const filteredAnime = allAnime.filter((a) => {
     if (search) {
-      const q = search.toLowerCase();
+      const q = search.toLowerCase().trim();
       if (!a.title.toLowerCase().includes(q) && !a.titleEnglish?.toLowerCase().includes(q) && !a.titleRomaji?.toLowerCase().includes(q)) return false;
     }
     if (selectedGenres.length > 0 && !selectedGenres.some((g) => a.genres?.includes(g))) return false;
