@@ -39,7 +39,7 @@ const SignIn = () => {
           {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
       </div>
-      <Link to="#" className="text-emerald-500 text-sm font-medium block">Forgot Password?</Link>
+      <Link to="/forgot-password" className="text-emerald-500 text-sm font-medium block">Forgot Password?</Link>
       <div className="flex items-center justify-between pt-2">
         <p className="text-gray-500 text-sm">Don't have an account? <Link to="/signup" className="text-emerald-500 font-medium">Sign Up</Link></p>
         <button type="submit" className="bg-emerald-500 text-white font-semibold text-sm px-5 py-2 rounded-md hover:bg-emerald-600 transition">Sign In</button>
