@@ -16,6 +16,8 @@ interface AuthContextType {
   signup: (username: string, email: string, password: string) => { success: boolean; error?: string };
   logout: () => void;
   setAvatar: (avatar: string) => void;
+  requestPasswordReset: (email: string) => { success: boolean; error?: string; code?: string; expiresAt?: number };
+  resetPassword: (email: string, code: string, newPassword: string) => { success: boolean; error?: string };
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
