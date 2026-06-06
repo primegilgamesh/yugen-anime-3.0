@@ -16,6 +16,8 @@ interface AuthContextType {
   signup: (username: string, email: string, password: string) => { success: boolean; error?: string };
   logout: () => void;
   setAvatar: (avatar: string) => void;
+  requestPasswordReset: (email: string) => { success: boolean; error?: string; code?: string; expiresAt?: number };
+  resetPassword: (email: string, code: string, newPassword: string) => { success: boolean; error?: string };
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -221,8 +223,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const RESET_KEY = "yugen_pw_resets";
+  type ResetRecord = { code: string; expiresAt: number; attempts: number };
+  const readResets = (): Record<string, ResetRecord> => {
+    try { return JSON.parse(localStorage.getItem(RESET_KEY) || "{}"); } catch { return {}; }
+  };
+  const writeResets = (r: Record<string, ResetRecord>) =>
+    localStorage.setItem(RESET_KEY, JSON.stringify(r));
+
+  const requestPasswordReset = (email: string) => {
+    const emailErr = validateEmail(email);
+    if (emailErr) return { success: false, error: emailErr };
+    const users = loadUsers();
+    const exists = users.find((u) => u.email === email) || email === ADMIN_EMAIL;
+    if (!exists) return { success: false, error: "No account found with that email." };
+    // Generate a fresh 6-digit code; any previous code is invalidated.
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const all = readResets();
+    all[email] = { code, expiresAt, attempts: 0 };
+    writeResets(all);
+    return { success: true, code, expiresAt };
+  };
+
+  const resetPassword = (email: string, code: string, newPassword: string) => {
+    const all = readResets();
+    const rec = all[email];
+    if (!rec) return { success: false, error: "Request a new reset code." };
+    if (Date.now() > rec.expiresAt) { delete all[email]; writeResets(all); return { success: false, error: "Code expired. Request a new one." }; }
+    if (rec.attempts >= 5) { delete all[email]; writeResets(all); return { success: false, error: "Too many attempts. Request a new code." }; }
+    if (rec.code !== code.trim()) {
+      rec.attempts += 1; writeResets(all);
+      return { success: false, error: "Incorrect reset code." };
+    }
+    const passwordErr = validatePassword(newPassword);
+    if (passwordErr) return { success: false, error: passwordErr };
+    if (email === ADMIN_EMAIL) {
+      setOwnerPassword(newPassword);
+    } else {
+      const users = loadUsers();
+      const idx = users.findIndex((u) => u.email === email);
+      if (idx < 0) return { success: false, error: "Account not found." };
+      users[idx].password = newPassword;
+      saveUsers(users);
+    }
+    // One-time use: consume the code so it can't be reused.
+    delete all[email]; writeResets(all);
+    return { success: true };
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn: !!user, isAdmin: !!user?.isAdmin, login, signup, logout, setAvatar }}>
+    <AuthContext.Provider value={{ user, isLoggedIn: !!user, isAdmin: !!user?.isAdmin, login, signup, logout, setAvatar, requestPasswordReset, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

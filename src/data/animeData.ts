@@ -2132,3 +2132,37 @@ export const bonusCatalog: AnimeEntry[] = [
 ];
 
 bonusCatalog.forEach((s) => { if (!allAnime.find((a) => a.slug === s.slug)) allAnime.push(s); });
+
+// Extra catalog — additional 80 procedurally generated entries to expand the library.
+const _adjA = ["Crimson","Azure","Verdant","Golden","Silent","Wandering","Eternal","Falling","Radiant","Drifting","Sacred","Iron","Frozen","Solar","Lunar","Twilight","Dawn","Obsidian","Jade","Onyx","Boundless","Singing","Distant","Whispering","Forgotten","Echoing","Shattered"];
+const _nounA = ["Blade","Phoenix","Garden","Hymn","Pact","Promise","Reverie","Sword","Codex","Comet","Empire","Crown","Sonata","Symphony","Pilgrim","Knight","Memory","Saga","Lotus","Tide","Echo","Verse","Trial","Tale","Oracle","Sky","Dragon"];
+const _suffA = ["Chronicle","Awakening","no Saga","Legend","Odyssey"];
+const _studios = ["MAPPA","Bones","Wit Studio","Madhouse","Kyoto Animation","Studio Mir","Mihoyo","HaoLiners","bilibili","Foch Films","Light Chaser","Doga Kobo","A-1 Pictures","P.A.Works","CloverWorks","Locus","DR Movie","JM Animation","NAVER Webtoon","Tencent Penguin Pictures","Colored Pencil Animation"];
+const _genres = ["Action, Adventure, Fantasy","Sci-Fi, Mecha, Action","Drama, Romance, Slice of Life","Mystery, Supernatural, Thriller","Action, Cultivation, Fantasy","Action, Manhwa, Supernatural","Romance, School, Comedy","Adventure, Comedy, Fantasy","Action, Wuxia, Historical"];
+const _seasons = ["Winter 2023","Spring 2023","Summer 2023","Fall 2023","Winter 2024","Spring 2024","Summer 2024","Fall 2024","Winter 2025","Spring 2025","Summer 2025","Winter 2026"];
+const _statuses = ["Finished Airing","Currently Airing","Not Yet Aired"];
+
+export const extraCatalog: AnimeEntry[] = Array.from({ length: 80 }, (_, i) => {
+  const adj = _adjA[i % _adjA.length];
+  const noun = _nounA[(i * 3) % _nounA.length];
+  const suf = _suffA[(i * 5) % _suffA.length];
+  const title = `${adj} ${noun} ${suf}`;
+  const slug = `${adj}-${noun}-${suf}-y${i}`.toLowerCase().replace(/\s+/g, "-");
+  return {
+    slug,
+    title,
+    titleEnglish: title,
+    season: _seasons[(i * 7) % _seasons.length],
+    score: Math.round((5 + ((i * 37) % 50) / 10) * 100) / 100,
+    cover: gradients[i % gradients.length],
+    episodes: [8, 10, 12, 13, 24, 26][i % 6],
+    dubbed: i % 3 === 0,
+    studios: _studios[(i * 11) % _studios.length],
+    format: "TV",
+    genres: _genres[(i * 13) % _genres.length],
+    status: _statuses[(i * 17) % _statuses.length],
+    synopsis: `${title} follows a sweeping journey across worlds, weaving rivalries, lost legacies, and the bonds that test fate itself.`,
+  };
+});
+
+extraCatalog.forEach((s) => { if (!allAnime.find((a) => a.slug === s.slug)) allAnime.push(s); });
