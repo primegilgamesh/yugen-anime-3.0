@@ -50,11 +50,17 @@ const SignUp = () => {
       <div className="flex gap-2">
         <div className={`flex-1 flex items-center border border-gray-200 rounded-lg px-2 ${mobile ? "py-3" : "py-2.5"} gap-1 min-w-0`}>
           <Lock size={12} className="text-gray-400 flex-shrink-0" />
-          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="flex-1 outline-none text-[11px] text-gray-700 placeholder:text-gray-400 bg-transparent min-w-0" />
+          <input type={showPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="flex-1 outline-none text-[11px] text-gray-700 placeholder:text-gray-400 bg-transparent min-w-0" />
+          <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-gray-400 hover:text-gray-600 focus:outline-none flex-shrink-0">
+            {showPassword ? <EyeOff size={12} /> : <Eye size={12} />}
+          </button>
         </div>
         <div className={`flex-1 flex items-center border border-gray-200 rounded-lg px-2 ${mobile ? "py-3" : "py-2.5"} gap-1 min-w-0`}>
           <Lock size={12} className="text-gray-400 flex-shrink-0" />
-          <input type="password" placeholder="Repeat" value={repeat} onChange={(e) => setRepeat(e.target.value)} className="flex-1 outline-none text-[11px] text-gray-700 placeholder:text-gray-400 bg-transparent min-w-0" />
+          <input type={showRepeat ? "text" : "password"} placeholder="Repeat" value={repeat} onChange={(e) => setRepeat(e.target.value)} className="flex-1 outline-none text-[11px] text-gray-700 placeholder:text-gray-400 bg-transparent min-w-0" />
+          <button type="button" onClick={() => setShowRepeat(!showRepeat)} className="text-gray-400 hover:text-gray-600 focus:outline-none flex-shrink-0">
+            {showRepeat ? <EyeOff size={12} /> : <Eye size={12} />}
+          </button>
         </div>
       </div>
       <div className="flex items-center justify-between pt-1">
