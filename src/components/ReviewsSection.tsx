@@ -5,6 +5,7 @@ import { useReviews } from "@/contexts/ReviewsContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { censorText } from "@/lib/censor";
 
 const ADMIN_USERNAMES = ["admin"];
 
@@ -131,7 +132,7 @@ const ReviewsSection = ({ slug = "default" }: Props) => {
                 <p className="text-foreground text-xs font-semibold">{r.user}</p>
                 <span className="text-[10px] text-muted-foreground">{new Date(r.createdAt).toLocaleDateString()}</span>
               </div>
-              <p className="text-foreground text-sm leading-relaxed whitespace-pre-wrap break-words">{r.text}</p>
+              <p className="text-foreground text-sm leading-relaxed whitespace-pre-wrap break-words">{censorText(r.text)}</p>
               <div className="flex items-center gap-3 mt-2">
                 <button onClick={() => handleVote(r.id, "like")} className={`flex items-center gap-1 text-xs transition ${myVote === "like" ? "text-primary" : "text-muted-foreground hover:text-primary"}`}>
                   <ThumbsUp size={12} fill={myVote === "like" ? "currentColor" : "none"} /> {r.likes}
@@ -159,7 +160,7 @@ const ReviewsSection = ({ slug = "default" }: Props) => {
             <div className="w-8 h-8 rounded-full bg-muted flex-shrink-0" />
             <div className="flex-1">
               <p className="text-muted-foreground text-[10px] mb-1">{r.user}</p>
-              <p className="text-foreground text-sm leading-relaxed">{r.text}</p>
+              <p className="text-foreground text-sm leading-relaxed">{censorText(r.text)}</p>
               <div className="flex items-center gap-3 mt-2">
                 <button onClick={() => handleSeedVote(r.id, "like")} className={`flex items-center gap-1 text-xs transition ${v === "like" ? "text-primary" : "text-muted-foreground hover:text-primary"}`}>
                   <ThumbsUp size={12} fill={v === "like" ? "currentColor" : "none"} /> {likes}
