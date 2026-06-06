@@ -16,6 +16,7 @@ import AnimePage from "./pages/anime-archive/AnimePage";
 import EpisodePlayerPage from "./pages/anime-archive/EpisodePlayerPage";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
+import ForgotPassword from "./pages/ForgotPassword";
 import Trending from "./pages/Trending";
 import Recents from "./pages/Recents";
 import Discover from "./pages/Discover";
@@ -47,6 +48,7 @@ const App = () => (
                   <Route path="/anime/:slug/watch/:episode" element={<EpisodePlayerPage />} />
                   <Route path="/signin" element={<SignIn />} />
                   <Route path="/signup" element={<SignUp />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/trending" element={<Trending />} />
                   <Route path="/recents" element={<Recents />} />
                   <Route path="/discover" element={<Discover />} />
