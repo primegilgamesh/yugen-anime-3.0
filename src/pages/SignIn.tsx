@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, ArrowLeft } from "lucide-react";
+import { Mail, Lock, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -33,7 +34,10 @@ const SignIn = () => {
       </div>
       <div className={`flex items-center border border-gray-200 rounded-lg px-3 ${mobile ? "py-3" : "py-2.5"} gap-2`}>
         <Lock size={16} className="text-gray-400" />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="flex-1 outline-none text-sm text-gray-700 placeholder:text-gray-400 bg-transparent" />
+        <input type={showPassword ? "text" : "password"} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="flex-1 outline-none text-sm text-gray-700 placeholder:text-gray-400 bg-transparent" />
+        <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-gray-400 hover:text-gray-600 focus:outline-none">
+          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+        </button>
       </div>
       <Link to="#" className="text-emerald-500 text-sm font-medium block">Forgot Password?</Link>
       <div className="flex items-center justify-between pt-2">
