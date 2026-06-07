@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Play, Rewind, FastForward, Settings, Maximize, ChevronLeft, ChevronRight, LayoutGrid, Lightbulb, Camera, RotateCw, Download, Repeat } from "lucide-react";
+import { Rewind, FastForward, Settings, Maximize, ChevronLeft, ChevronRight, LayoutGrid, Lightbulb, Camera, RotateCw, Download, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
@@ -20,6 +20,9 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
+const SAMPLE_VIDEO_SRC =
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+
 const EpisodePlayerPage = () => {
   const { slug, episode } = useParams<{ slug: string; episode: string }>();
   const epNum = parseInt(episode || "1");
@@ -29,7 +32,9 @@ const EpisodePlayerPage = () => {
   const [audioMode, setAudioMode] = useState<"sub" | "dub">("sub");
   const [subtitle, setSubtitle] = useState("English");
   const [resolution, setResolution] = useState("Auto");
+  const [dimmed, setDimmed] = useState(false);
   const playerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const anime = allAnime.find((a) => a.slug === slug);
 
