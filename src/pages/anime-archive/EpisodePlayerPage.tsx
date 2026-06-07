@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Rewind, FastForward, Settings, Maximize, ChevronLeft, ChevronRight, LayoutGrid, Lightbulb, Camera, RotateCw, Download, Repeat } from "lucide-react";
+import { Settings, Maximize, ChevronLeft, ChevronRight, LayoutGrid, Lightbulb, Camera, RotateCw, Download, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
