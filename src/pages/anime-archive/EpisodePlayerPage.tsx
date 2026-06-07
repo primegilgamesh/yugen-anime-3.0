@@ -83,56 +83,114 @@ const EpisodePlayerPage = () => {
     }
   };
 
+  const handleSnapshot = async () => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (!v.videoWidth || !v.videoHeight) {
+      toast("Start the video first to capture a frame", { position: "top-right" });
+      return;
+    }
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = v.videoWidth;
+      canvas.height = v.videoHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("no ctx");
+      ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${anime.slug}-ep${epNum}-snapshot.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success("Snapshot saved");
+      }, "image/png");
+    } catch {
+      toast.error("Couldn't capture frame (CORS restricted)");
+    }
+  };
+
+  const handleReload = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.pause();
+    v.currentTime = 0;
+    v.load();
+    v.play().catch(() => {});
+    toast("Video reloaded", { position: "top-right" });
+  };
+
+  const handleDownload = () => {
+    const a = document.createElement("a");
+    a.href = SAMPLE_VIDEO_SRC;
+    a.download = `${anime.slug}-ep${epNum}.mp4`;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.click();
+    toast.success("Download started");
+  };
+
   return (
     <div className="min-h-screen bg-background pb-14 md:pb-0">
+      {/* Page dim overlay (Lightbulb). Player sits above it via z-index. */}
+      {dimmed && (
+        <div
+          className="fixed inset-0 z-40 bg-black/85 pointer-events-none transition-opacity"
+          aria-hidden="true"
+        />
+      )}
       <Sidebar />
       <BottomNav />
       <div className="md:ml-[70px]">
         <TopBar />
 
         {/* Video Player */}
-        <div ref={playerRef} className="relative w-full aspect-video bg-black max-h-[70vh]">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-muted-foreground text-sm">Video Player · {audioMode.toUpperCase()} · {resolution} · Subs: {subtitle}</div>
+        <div
+          ref={playerRef}
+          className={`relative w-full aspect-video bg-black max-h-[70vh] ${dimmed ? "z-50" : ""}`}
+          style={dimmed ? { boxShadow: "0 0 60px 8px hsl(var(--primary) / 0.35)" } : undefined}
+        >
+          <video
+            ref={videoRef}
+            src={SAMPLE_VIDEO_SRC}
+            crossOrigin="anonymous"
+            controls
+            playsInline
+            className="absolute inset-0 w-full h-full object-contain bg-black"
+          />
+          <div className="absolute top-2 left-2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded pointer-events-none">
+            {audioMode.toUpperCase()} · {resolution} · Subs: {subtitle}
           </div>
-          {/* Player Controls */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-3 md:p-4">
-            <div className="flex items-center gap-3 text-white">
-              <button className="hover:text-primary transition"><Rewind size={18} /></button>
-              <button className="hover:text-primary transition"><Play size={20} /></button>
-              <button className="hover:text-primary transition"><FastForward size={18} /></button>
-              <div className="flex-1 h-1 bg-white/20 rounded-full mx-2 relative">
-                <div className="absolute left-0 top-0 h-full w-0 bg-primary rounded-full" />
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full" />
-              </div>
-              <span className="text-xs">00:00 / 23:15</span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="hover:text-primary transition" aria-label="Settings"><Settings size={16} /></button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52 bg-card border-border">
-                  <DropdownMenuLabel className="text-foreground text-xs">Subtitles</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup value={subtitle} onValueChange={setSubtitle}>
-                    {["Off", "English", "Spanish", "Japanese", "French", "German"].map((s) => (
-                      <DropdownMenuRadioItem key={s} value={s} className="text-xs">{s}</DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel className="text-foreground text-xs">Resolution</DropdownMenuLabel>
-                  <DropdownMenuRadioGroup value={resolution} onValueChange={setResolution}>
-                    {["Auto", "1080p", "720p", "480p", "360p"].map((r) => (
-                      <DropdownMenuRadioItem key={r} value={r} className="text-xs">{r}</DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <button onClick={toggleFullscreen} className="hover:text-primary transition" aria-label="Fullscreen"><Maximize size={16} /></button>
-            </div>
+          {/* Settings + Fullscreen overlay (top-right) */}
+          <div className="absolute top-2 right-2 flex items-center gap-2 text-white">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="bg-black/50 hover:bg-black/70 p-1.5 rounded transition" aria-label="Settings"><Settings size={14} /></button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52 bg-card border-border">
+                <DropdownMenuLabel className="text-foreground text-xs">Subtitles</DropdownMenuLabel>
+                <DropdownMenuRadioGroup value={subtitle} onValueChange={setSubtitle}>
+                  {["Off", "English", "Spanish", "Japanese", "French", "German"].map((s) => (
+                    <DropdownMenuRadioItem key={s} value={s} className="text-xs">{s}</DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-foreground text-xs">Resolution</DropdownMenuLabel>
+                <DropdownMenuRadioGroup value={resolution} onValueChange={setResolution}>
+                  {["Auto", "1080p", "720p", "480p", "360p"].map((r) => (
+                    <DropdownMenuRadioItem key={r} value={r} className="text-xs">{r}</DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <button onClick={toggleFullscreen} className="bg-black/50 hover:bg-black/70 p-1.5 rounded transition" aria-label="Fullscreen"><Maximize size={14} /></button>
           </div>
         </div>
 
         {/* Episode Nav Bar */}
-        <div className="flex items-center justify-between bg-card border-b border-border px-3 py-2">
+        <div className={`flex items-center justify-between bg-card border-b border-border px-3 py-2 ${dimmed ? "relative z-50" : ""}`}>
           {epNum > 1 ? (
             <Link to={`/anime/${slug}/watch/${epNum - 1}`} className="text-muted-foreground hover:text-foreground transition">
               <ChevronLeft size={20} />
@@ -140,10 +198,17 @@ const EpisodePlayerPage = () => {
           ) : <div className="w-5" />}
           <div className="flex items-center gap-3 text-muted-foreground">
             <button className="hover:text-foreground transition" aria-label="Grid"><LayoutGrid size={14} /></button>
-            <button className="hover:text-foreground transition" aria-label="Lights"><Lightbulb size={14} /></button>
-            <button className="hover:text-foreground transition" aria-label="Screenshot"><Camera size={14} /></button>
-            <button className="hover:text-foreground transition" aria-label="Reload"><RotateCw size={14} /></button>
-            <button className="hover:text-foreground transition" aria-label="Download"><Download size={14} /></button>
+            <button
+              onClick={() => setDimmed((d) => !d)}
+              className={`transition ${dimmed ? "text-amber-400" : "hover:text-foreground"}`}
+              aria-label="Lights"
+              title={dimmed ? "Lights on" : "Lights off"}
+            >
+              <Lightbulb size={14} fill={dimmed ? "currentColor" : "none"} />
+            </button>
+            <button onClick={handleSnapshot} className="hover:text-foreground transition" aria-label="Screenshot" title="Capture frame"><Camera size={14} /></button>
+            <button onClick={handleReload} className="hover:text-foreground transition" aria-label="Reload" title="Reload video"><RotateCw size={14} /></button>
+            <button onClick={handleDownload} className="hover:text-foreground transition" aria-label="Download" title="Download video"><Download size={14} /></button>
           </div>
           {epNum < totalEps ? (
             <Link to={`/anime/${slug}/watch/${epNum + 1}`} className="text-muted-foreground hover:text-foreground transition">
