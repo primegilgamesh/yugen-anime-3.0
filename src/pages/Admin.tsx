@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import TopBar from "@/components/TopBar";
-import Sidebar from "@/components/Sidebar";
+
 import { useAuth, ADMINS_KEY, ADMIN_LOGINS_KEY, AdminAccount, loadAdmins, saveAdmins, setOwnerPassword } from "@/contexts/AuthContext";
 import { loadUsers, saveUsers, SecureUser } from "@/lib/cryptoStore";
 import { broadcastAdminNotification } from "@/contexts/NotificationsContext";
@@ -66,33 +66,30 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <TopBar />
-      <div className="flex flex-1">
-        <Sidebar />
-        <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
-          <header className="mb-5">
-            <h1 className="text-2xl font-display font-bold text-foreground">Admin Panel</h1>
-            <p className="text-muted-foreground text-xs">Manage content, users and broadcasts.</p>
-          </header>
-          <nav className="flex flex-wrap gap-2 mb-5">
-            {([
-              ["animes", "Animes"],
-              ["users", "Users"],
-              ["stats", "Statistics"],
-              ["broadcast", "Broadcast"],
-              ["home", "Home Layout"],
-              ["admins", "Admins"],
-            ] as [Tab, string][]).map(([id, label]) => (
-              <button key={id} onClick={() => setTab(id)} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${tab === id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>{label}</button>
-            ))}
-          </nav>
-          {tab === "animes" && <AnimesTab />}
-          {tab === "users" && <UsersTab />}
-          {tab === "stats" && <StatsTab />}
-          {tab === "broadcast" && <BroadcastTab />}
-          {tab === "home" && <HomeLayoutTab />}
-          {tab === "admins" && <AdminsTab />}
-        </main>
-      </div>
+      <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
+        <header className="mb-5">
+          <h1 className="text-2xl font-display font-bold text-foreground">Admin Panel</h1>
+          <p className="text-muted-foreground text-xs">Manage content, users and broadcasts.</p>
+        </header>
+        <nav className="flex flex-wrap gap-2 mb-5">
+          {([
+            ["animes", "Animes"],
+            ["users", "Users"],
+            ["stats", "Statistics"],
+            ["broadcast", "Broadcast"],
+            ["home", "Home Layout"],
+            ["admins", "Admins"],
+          ] as [Tab, string][]).map(([id, label]) => (
+            <button key={id} onClick={() => setTab(id)} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${tab === id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>{label}</button>
+          ))}
+        </nav>
+        {tab === "animes" && <AnimesTab />}
+        {tab === "users" && <UsersTab />}
+        {tab === "stats" && <StatsTab />}
+        {tab === "broadcast" && <BroadcastTab />}
+        {tab === "home" && <HomeLayoutTab />}
+        {tab === "admins" && <AdminsTab />}
+      </main>
     </div>
   );
 };

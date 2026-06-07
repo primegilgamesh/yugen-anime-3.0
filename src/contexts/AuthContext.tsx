@@ -1,5 +1,34 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { loadUsers, saveUsers, SecureUser, encryptField, decryptField } from "@/lib/cryptoStore";
+import { sanitizeInput, rateLimit } from "@/lib/waf";
+
+// Login throttle: lock for 5 hours after 5 failed attempts within 30 minutes.
+const LOGIN_ATTEMPTS_KEY = "yugen_login_attempts";
+const MAX_ATTEMPTS = 5;
+const ATTEMPT_WINDOW_MS = 30 * 60 * 1000;
+const LOCKOUT_MS = 5 * 60 * 60 * 1000;
+type AttemptRec = { times: number[]; lockedUntil?: number };
+const readAttempts = (): Record<string, AttemptRec> => {
+  try { return JSON.parse(localStorage.getItem(LOGIN_ATTEMPTS_KEY) || "{}"); } catch { return {}; }
+};
+const writeAttempts = (r: Record<string, AttemptRec>) =>
+  localStorage.setItem(LOGIN_ATTEMPTS_KEY, JSON.stringify(r));
+
+const notifyAdminOfFailedLogin = (email: string) => {
+  try {
+    const key = `yugen_notifications_yugenanimecc@gmail.com`;
+    const list: any[] = JSON.parse(localStorage.getItem(key) || "[]");
+    list.unshift({
+      id: `failed-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      title: "Failed login attempt",
+      body: `Email: ${email} · ${new Date().toLocaleString()}`,
+      type: "admin",
+      createdAt: Date.now(),
+    });
+    localStorage.setItem(key, JSON.stringify(list.slice(0, 100)));
+    window.dispatchEvent(new Event("yugen-notifications-update"));
+  } catch {}
+};
 
 export interface User {
   username: string;
@@ -136,8 +165,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = (email: string, password: string) => {
+    // WAF: basic input sanitization
+    const sEmail = sanitizeInput(email, { maxLen: 254 });
+    if (sEmail.blocked) return { success: false, error: "Invalid characters in email." };
+    email = sEmail.clean.trim().toLowerCase();
+    if (password.length > 200) return { success: false, error: "Password too long." };
+
     const emailErr = validateEmail(email);
     if (emailErr) return { success: false, error: emailErr };
+
+    // WAF: per-IP-ish global request throttle (max 20 login calls per minute on this device).
+    if (!rateLimit("login_burst", 20, 60_000)) {
+      return { success: false, error: "Too many requests. Please slow down." };
+    }
+
+    // Check lockout BEFORE attempting credentials.
+    const attempts = readAttempts();
+    const rec = attempts[email] || { times: [] };
+    if (rec.lockedUntil && Date.now() < rec.lockedUntil) {
+      const mins = Math.ceil((rec.lockedUntil - Date.now()) / 60000);
+      return { success: false, error: `Too many failed attempts. Try again in ~${mins} minute${mins === 1 ? "" : "s"}.` };
+    }
+
+    const onFailure = () => {
+      const a = readAttempts();
+      const r: AttemptRec = a[email] || { times: [] };
+      const now = Date.now();
+      r.times = r.times.filter((t) => now - t < ATTEMPT_WINDOW_MS);
+      r.times.push(now);
+      if (r.times.length >= MAX_ATTEMPTS) {
+        r.lockedUntil = now + LOCKOUT_MS;
+        r.times = [];
+      }
+      a[email] = r;
+      writeAttempts(a);
+      notifyAdminOfFailedLogin(email);
+    };
+    const onSuccess = () => {
+      const a = readAttempts();
+      delete a[email];
+      writeAttempts(a);
+    };
 
     // Admin login shortcut — does not require a registered account.
     if (email === ADMIN_EMAIL && password === getOwnerPassword()) {
@@ -150,6 +218,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(adminData);
       localStorage.setItem("yugen_current_user", JSON.stringify(adminData));
       recordAdminLogin(email);
+      onSuccess();
       return { success: true };
     }
 
@@ -164,6 +233,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(adminData);
       localStorage.setItem("yugen_current_user", JSON.stringify(adminData));
       recordAdminLogin(email);
+      onSuccess();
       return { success: true };
     }
 
@@ -171,12 +241,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const users = loadUsers();
     const found = users.find((u) => u.email === email);
-    if (!found) return { success: false, error: "No account found. Please create an account first." };
-    if (found.password !== password) return { success: false, error: "Incorrect password" };
-    
+    if (!found) { onFailure(); return { success: false, error: "No account found. Please create an account first." }; }
+    if (found.password !== password) { onFailure(); return { success: false, error: "Incorrect password" }; }
+
     const userData: User = { username: found.username, email: found.email, avatar: found.avatar };
     setUser(userData);
     localStorage.setItem("yugen_current_user", JSON.stringify(userData));
+    onSuccess();
     return { success: true };
   };
 

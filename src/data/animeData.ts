@@ -2166,3 +2166,34 @@ export const extraCatalog: AnimeEntry[] = Array.from({ length: 80 }, (_, i) => {
 });
 
 extraCatalog.forEach((s) => { if (!allAnime.find((a) => a.slug === s.slug)) allAnime.push(s); });
+
+// ----- Movies & additional Seasons catalog -----
+const _movieAdj = ["Eternal","Crimson","Sapphire","Lunar","Solar","Hidden","Forgotten","Sacred","Silent","Wandering","Iron","Jade","Phantom","Radiant","Onyx","Frozen","Burning","Boundless","Whispering","Shattered"];
+const _movieNoun = ["Garden","Symphony","Pilgrimage","Voyage","Reverie","Requiem","Ascension","Echo","Verse","Bloom","Rite","Oath","Mirage","Tide","Beacon","Crown","Saga","Legend","Crusade","Vow"];
+export const movieSeasonCatalog: AnimeEntry[] = Array.from({ length: 60 }, (_, i) => {
+  const isMovie = i % 3 === 0;
+  const seasonNum = (i % 4) + 2; // S2..S5 for non-movies
+  const adj = _movieAdj[i % _movieAdj.length];
+  const noun = _movieNoun[(i * 3) % _movieNoun.length];
+  const baseTitle = `${adj} ${noun}`;
+  const title = isMovie ? `${baseTitle}: The Movie` : `${baseTitle} Season ${seasonNum}`;
+  const slug = `${adj}-${noun}-${isMovie ? "movie" : `s${seasonNum}`}-m${i}`.toLowerCase().replace(/\s+/g, "-");
+  return {
+    slug,
+    title,
+    titleEnglish: title,
+    titleRomaji: title,
+    season: _seasons[(i * 5) % _seasons.length],
+    score: Math.round((6 + ((i * 41) % 40) / 10) * 100) / 100,
+    cover: gradients[(i + 2) % gradients.length],
+    episodes: isMovie ? 1 : [10, 12, 13, 24][i % 4],
+    duration: isMovie ? "115 min" : "24 min per ep",
+    dubbed: i % 2 === 0,
+    studios: _studios[(i * 7) % _studios.length],
+    format: isMovie ? "Movie" : "TV",
+    genres: _genres[(i * 11) % _genres.length],
+    status: isMovie ? "Finished Airing" : _statuses[(i * 19) % _statuses.length],
+    synopsis: `${title} continues the saga with higher stakes, evolved rivalries, and an unforgettable finale that reshapes the world its characters fought to protect.`,
+  };
+});
+movieSeasonCatalog.forEach((s) => { if (!allAnime.find((a) => a.slug === s.slug)) allAnime.push(s); });
