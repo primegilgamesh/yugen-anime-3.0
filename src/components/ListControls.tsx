@@ -74,17 +74,18 @@ const ListControls = ({ anime, size = "md" }: Props) => {
   const currentLabel = existing ? listOptions.find((o) => o.id === existing.category)?.label : "Add to List";
 
   const btnCls = size === "sm"
-    ? "text-xs px-4 py-2"
-    : "text-sm px-5 py-2";
+    ? "text-[10px] px-2 py-1 gap-1"
+    : "text-sm px-5 py-2 gap-1.5";
+  const favCls = size === "sm" ? "p-1" : "p-2";
 
   return (
     <>
-      <button onClick={handleAddClick} className={`bg-primary text-primary-foreground font-semibold ${btnCls} rounded-md hover:opacity-90 transition flex items-center gap-1.5`}>
-        <Plus size={size === "sm" ? 12 : 14} />
+      <button onClick={handleAddClick} className={`bg-primary text-primary-foreground font-semibold ${btnCls} rounded-md hover:opacity-90 transition flex items-center`}>
+        <Plus size={size === "sm" ? 10 : 14} />
         {currentLabel}
       </button>
-      <button onClick={handleFavorite} className={`p-2 rounded-md transition ${favorited ? "bg-heart/20 text-heart" : "bg-muted text-muted-foreground hover:text-heart"}`}>
-        <Heart size={size === "sm" ? 16 : 18} fill={favorited ? "currentColor" : "none"} />
+      <button onClick={handleFavorite} className={`${favCls} rounded-md transition ${favorited ? "bg-heart/20 text-heart" : "bg-muted text-muted-foreground hover:text-heart"}`}>
+        <Heart size={size === "sm" ? 12 : 18} fill={favorited ? "currentColor" : "none"} />
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
