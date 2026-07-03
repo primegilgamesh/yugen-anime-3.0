@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import "@/data/scheduleData"; // ensures schedule merges into allAnime so pages auto-generate
 import ScrollToTop from "@/components/ScrollToTop";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Home from "./pages/Home";
 import AnimePage from "./pages/anime-archive/AnimePage";
 import EpisodePlayerPage from "./pages/anime-archive/EpisodePlayerPage";
@@ -30,6 +31,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
+  <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <ThemeProvider>
@@ -70,6 +72,7 @@ const App = () => (
       </ThemeProvider>
     </TooltipProvider>
   </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
