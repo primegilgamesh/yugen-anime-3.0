@@ -6,10 +6,12 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import Sidebar from "@/components/Sidebar";
 import MobileDescription from "@/components/MobileDescription";
+import ErrorScreen from "@/components/ErrorScreen";
 import { allAnime } from "@/data/animeData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useList } from "@/contexts/ListContext";
 import ListControls from "@/components/ListControls";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
