@@ -1,15 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Settings, Maximize, ChevronLeft, ChevronRight, LayoutGrid, Lightbulb, Camera, RotateCw, Download, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import Sidebar from "@/components/Sidebar";
 import MobileDescription from "@/components/MobileDescription";
+import ErrorScreen from "@/components/ErrorScreen";
 import { allAnime } from "@/data/animeData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useList } from "@/contexts/ListContext";
 import ListControls from "@/components/ListControls";
+
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -28,6 +30,7 @@ const EpisodePlayerPage = () => {
   const epNum = parseInt(episode || "1");
   const { isLoggedIn } = useAuth();
   const { recordWatch } = useList();
+  const navigate = useNavigate();
   const [autoNext, setAutoNext] = useState(true);
   const [audioMode, setAudioMode] = useState<"sub" | "dub">("sub");
   const [subtitle, setSubtitle] = useState("English");
@@ -37,19 +40,35 @@ const EpisodePlayerPage = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const anime = allAnime.find((a) => a.slug === slug);
+  const maxEps = anime?.episodes || anime?.episodeList?.length || 12;
+  const episodeMissing = !!anime && (isNaN(epNum) || epNum < 1 || epNum > maxEps);
 
   useEffect(() => {
-    if (anime && isLoggedIn) {
+    if (anime && !episodeMissing && isLoggedIn) {
       const epTitle = anime.episodeList?.find((e) => e.num === epNum)?.title;
       recordWatch(anime.slug, anime.title, anime.cover, epNum, epTitle);
     }
-  }, [anime, epNum, isLoggedIn, recordWatch]);
+  }, [anime, epNum, isLoggedIn, recordWatch, episodeMissing]);
 
   if (!anime) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-foreground text-lg">Anime not found</p>
-      </div>
+      <ErrorScreen
+        code="404"
+        title="Anime not found"
+        message={`We couldn't find any series matching "${slug}". It may have been removed or the link is broken.`}
+        onRetry={() => navigate("/discover")}
+      />
+    );
+  }
+
+  if (episodeMissing) {
+    return (
+      <ErrorScreen
+        code="404"
+        title="Episode not found"
+        message={`Episode ${episode} of "${anime.title}" doesn't exist. This series has ${maxEps} episode${maxEps === 1 ? "" : "s"}.`}
+        onRetry={() => navigate(`/anime/${anime.slug}`)}
+      />
     );
   }
 

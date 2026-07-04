@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Compass, Search, ChevronDown, ChevronUp, Star, Headphones, ArrowRight, X, SlidersHorizontal } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
+import { SearchX } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import BottomNav from "@/components/BottomNav";
 import TopBar from "@/components/TopBar";
@@ -30,7 +31,7 @@ const SORTS = ["Ascending","Descending","Score ↓","Score ↑"];
 const LANGUAGES = ["Both","Sub Only","Dub Available"];
 
 const Discover = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
   const [search, setSearch] = useState(initialSearch);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
@@ -43,9 +44,19 @@ const Discover = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const s = searchParams.get("search");
-    if (s) { setSearch(s); }
+    const s = searchParams.get("search") ?? "";
+    setSearch(s);
+    setCurrentPage(1);
   }, [searchParams]);
+
+  const updateSearch = (v: string) => {
+    setSearch(v);
+    setCurrentPage(1);
+    const next = new URLSearchParams(searchParams);
+    if (v.trim()) next.set("search", v);
+    else next.delete("search");
+    setSearchParams(next, { replace: true });
+  };
 
   const toggleGenre = (g: string) => {
     setSelectedGenres((prev) => prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]);
@@ -134,7 +145,10 @@ const Discover = () => {
       <div className="relative">
         <div className="flex items-center bg-secondary rounded-md px-3 py-2 gap-2">
           <Search size={14} className="text-muted-foreground" />
-          <input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} placeholder="Search discover" className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none w-full" />
+          <input value={search} onChange={(e) => updateSearch(e.target.value)} placeholder="Search discover" className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none w-full" />
+          {search && (
+            <button onClick={() => updateSearch("")} aria-label="Clear search" className="text-muted-foreground hover:text-foreground"><X size={14} /></button>
+          )}
         </div>
       </div>
       <SelectDropdown label="Season" value={season} options={SEASONS} onChange={setSeason} />
@@ -200,7 +214,40 @@ const Discover = () => {
               </Link>
             ))}
           </div>
-          {pageAnime.length === 0 && <p className="text-muted-foreground text-sm text-center py-16">No anime found matching your filters.</p>}
+          {pageAnime.length === 0 && (
+            <div className="flex flex-col items-center justify-center text-center py-20 animate-fade-in">
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse" />
+                <div className="relative flex items-center gap-3 font-display font-extrabold leading-none">
+                  {"404".split("").map((d, i) => (
+                    <span
+                      key={i}
+                      className="error-digit text-[5rem] md:text-[7rem] bg-gradient-to-br from-primary via-primary/70 to-destructive bg-clip-text text-transparent drop-shadow-[0_0_25px_hsl(var(--primary)/0.35)]"
+                      style={{ animationDelay: `${i * 0.15}s` }}
+                    >
+                      {d}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-destructive mb-2 animate-[pulse_2s_ease-in-out_infinite]">
+                <SearchX size={16} />
+                <span className="text-xs font-semibold uppercase tracking-[0.25em]">No matches</span>
+              </div>
+              <h3 className="text-foreground font-display font-bold text-lg md:text-xl">Anime not found</h3>
+              <p className="text-muted-foreground text-sm mt-1 max-w-sm">
+                {search ? <>Nothing matches <span className="text-foreground font-medium">"{search}"</span>. Try a different title or clear your filters.</> : "No results match the selected filters. Try adjusting them."}
+              </p>
+              {(search || selectedGenres.length > 0 || season !== "Any" || status !== "Any" || language !== "Both") && (
+                <button
+                  onClick={() => { updateSearch(""); setSelectedGenres([]); setSeason("Any"); setStatus("Any"); setLanguage("Both"); }}
+                  className="mt-5 inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground text-sm font-medium px-4 py-2 hover:scale-105 transition-transform"
+                >
+                  Reset filters
+                </button>
+              )}
+            </div>
+          )}
           {renderPagination()}
         </div>
 
