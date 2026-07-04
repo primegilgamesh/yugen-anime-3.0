@@ -145,7 +145,10 @@ const Discover = () => {
       <div className="relative">
         <div className="flex items-center bg-secondary rounded-md px-3 py-2 gap-2">
           <Search size={14} className="text-muted-foreground" />
-          <input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} placeholder="Search discover" className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none w-full" />
+          <input value={search} onChange={(e) => updateSearch(e.target.value)} placeholder="Search discover" className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none w-full" />
+          {search && (
+            <button onClick={() => updateSearch("")} aria-label="Clear search" className="text-muted-foreground hover:text-foreground"><X size={14} /></button>
+          )}
         </div>
       </div>
       <SelectDropdown label="Season" value={season} options={SEASONS} onChange={setSeason} />
