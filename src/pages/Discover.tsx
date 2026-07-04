@@ -44,9 +44,19 @@ const Discover = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    const s = searchParams.get("search");
-    if (s) { setSearch(s); }
+    const s = searchParams.get("search") ?? "";
+    setSearch(s);
+    setCurrentPage(1);
   }, [searchParams]);
+
+  const updateSearch = (v: string) => {
+    setSearch(v);
+    setCurrentPage(1);
+    const next = new URLSearchParams(searchParams);
+    if (v.trim()) next.set("search", v);
+    else next.delete("search");
+    setSearchParams(next, { replace: true });
+  };
 
   const toggleGenre = (g: string) => {
     setSelectedGenres((prev) => prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]);
