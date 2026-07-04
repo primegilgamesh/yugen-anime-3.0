@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Compass, Search, ChevronDown, ChevronUp, Star, Headphones, ArrowRight, X, SlidersHorizontal } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
+import { SearchX } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import BottomNav from "@/components/BottomNav";
 import TopBar from "@/components/TopBar";
