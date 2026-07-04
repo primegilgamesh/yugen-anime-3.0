@@ -31,7 +31,7 @@ const SORTS = ["Ascending","Descending","Score ↓","Score ↑"];
 const LANGUAGES = ["Both","Sub Only","Dub Available"];
 
 const Discover = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
   const [search, setSearch] = useState(initialSearch);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
