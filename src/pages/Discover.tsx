@@ -214,7 +214,40 @@ const Discover = () => {
               </Link>
             ))}
           </div>
-          {pageAnime.length === 0 && <p className="text-muted-foreground text-sm text-center py-16">No anime found matching your filters.</p>}
+          {pageAnime.length === 0 && (
+            <div className="flex flex-col items-center justify-center text-center py-20 animate-fade-in">
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse" />
+                <div className="relative flex items-center gap-3 font-display font-extrabold leading-none">
+                  {"404".split("").map((d, i) => (
+                    <span
+                      key={i}
+                      className="error-digit text-[5rem] md:text-[7rem] bg-gradient-to-br from-primary via-primary/70 to-destructive bg-clip-text text-transparent drop-shadow-[0_0_25px_hsl(var(--primary)/0.35)]"
+                      style={{ animationDelay: `${i * 0.15}s` }}
+                    >
+                      {d}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-destructive mb-2 animate-[pulse_2s_ease-in-out_infinite]">
+                <SearchX size={16} />
+                <span className="text-xs font-semibold uppercase tracking-[0.25em]">No matches</span>
+              </div>
+              <h3 className="text-foreground font-display font-bold text-lg md:text-xl">Anime not found</h3>
+              <p className="text-muted-foreground text-sm mt-1 max-w-sm">
+                {search ? <>Nothing matches <span className="text-foreground font-medium">"{search}"</span>. Try a different title or clear your filters.</> : "No results match the selected filters. Try adjusting them."}
+              </p>
+              {(search || selectedGenres.length > 0 || season !== "Any" || status !== "Any" || language !== "Both") && (
+                <button
+                  onClick={() => { updateSearch(""); setSelectedGenres([]); setSeason("Any"); setStatus("Any"); setLanguage("Both"); }}
+                  className="mt-5 inline-flex items-center gap-2 rounded-md bg-primary text-primary-foreground text-sm font-medium px-4 py-2 hover:scale-105 transition-transform"
+                >
+                  Reset filters
+                </button>
+              )}
+            </div>
+          )}
           {renderPagination()}
         </div>
 
