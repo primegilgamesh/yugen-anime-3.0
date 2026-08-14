@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { allAnime } from "@/data/animeData";
+import { allAnime, AnimeEntry } from "@/data/animeData";
+import { findAnime } from "@/lib/animeMatch";
 
 const dayOrder = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
 
@@ -14,35 +15,15 @@ interface LiveEntry {
   id: number;
 }
 
-const slugify = (s: string) =>
-  s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-
-const normalize = (s: string) =>
-  s.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-function findAnimeSlug(entry: LiveEntry): string {
-  const candidates = [entry.romaji, entry.title].filter(Boolean);
-  const generated = slugify(entry.romaji || entry.title);
-
-  // 1. Exact slug match against generated title
-  const exact = allAnime.find((a) => a.slug === generated);
-  if (exact) return exact.slug;
-
-  // 2. Fuzzy title match across all title fields
-  for (const a of allAnime) {
-    const fields = [a.title, a.titleRomaji, a.titleEnglish, a.titleNative, a.synonyms].filter(Boolean);
-    for (const field of fields) {
-      for (const cand of candidates) {
-        if (normalize(field!).includes(normalize(cand)) || normalize(cand).includes(normalize(field!))) {
-          return a.slug;
-        }
-      }
-    }
+function resolveAnime(entry: LiveEntry): AnimeEntry | null {
+  const candidates = [entry.romaji, entry.title].filter(Boolean) as string[];
+  for (const cand of candidates) {
+    const hit = findAnime(cand, allAnime);
+    if (hit) return hit;
   }
-
-  // 3. Fallback to generated slug (page may still 404, but link is meaningful)
-  return generated;
+  return null;
 }
+
 
 // Fetch the current week's airing schedule from AniList. Public GraphQL, no auth.
 async function fetchWeekSchedule(): Promise<LiveEntry[]> {
@@ -174,11 +155,15 @@ const ScheduleModal = () => {
                 const d = new Date(entry.airingAt * 1000);
                 const t = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false });
                 const passed = entry.airingAt * 1000 < now.getTime();
+                const match = resolveAnime(entry);
+                const href = match
+                  ? `/anime/${match.slug}`
+                  : `/discover?search=${encodeURIComponent(entry.romaji || entry.title)}`;
                 return (
                   <div key={`${entry.id}-${entry.episode}`} className="flex gap-3 py-1">
                     <span className={`text-sm font-medium w-14 flex-shrink-0 ${passed ? "text-muted-foreground/60" : "text-primary"}`}>{t}</span>
                     <Link
-                      to={`/anime/${findAnimeSlug(entry)}`}
+                      to={href}
                       className="text-muted-foreground text-sm hover:text-primary transition-colors flex-1 truncate"
                     >
                       {entry.title}

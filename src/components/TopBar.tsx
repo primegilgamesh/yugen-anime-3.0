@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
 import { allAnime } from "@/data/animeData";
+import { searchAnime } from "@/lib/animeMatch";
 import yugenLogo from "@/assets/yugen-logo.png";
 
 const DiscordIcon = () => (
@@ -38,17 +39,12 @@ const TopBar = () => {
 
   useEffect(() => {
     if (searchQuery.trim().length > 0) {
-      const tokens = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
-      const results = allAnime.filter((a) => {
-        const haystack = [a.title, a.titleEnglish, a.titleRomaji, (a as any).titleNative, (a as any).synonyms]
-          .filter(Boolean).join(" ").toLowerCase();
-        return tokens.every((t) => haystack.includes(t));
-      }).slice(0, 8);
-      setSearchResults(results);
+      setSearchResults(searchAnime(searchQuery, allAnime, 8));
     } else {
       setSearchResults([]);
     }
   }, [searchQuery]);
+
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,8 +56,8 @@ const TopBar = () => {
     }
   };
 
-  const handleResultClick = (title: string) => {
-    navigate(`/discover?search=${encodeURIComponent(title)}`);
+  const handleResultClick = (slug: string) => {
+    navigate(`/anime/${slug}`);
     setSearchQuery("");
     setSearchOpen(false);
     setSearchResults([]);
@@ -143,7 +139,7 @@ const TopBar = () => {
   const searchDropdown = searchQuery.trim().length > 0 && (
     <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg z-50 max-h-[320px] overflow-y-auto">
       {searchResults.map((a) => (
-        <button key={a.slug} onClick={() => handleResultClick(a.title)} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-secondary transition-colors text-left">
+        <button key={a.slug} onClick={() => handleResultClick(a.slug)} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-secondary transition-colors text-left">
           <div className={`w-8 h-10 rounded bg-gradient-to-br ${a.cover} flex-shrink-0`} />
           <div className="min-w-0">
             <p className="text-foreground text-sm font-medium truncate">{a.title}</p>
