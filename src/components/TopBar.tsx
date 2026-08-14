@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
 import { allAnime } from "@/data/animeData";
+import { searchAnime } from "@/lib/animeMatch";
 import yugenLogo from "@/assets/yugen-logo.png";
 
 const DiscordIcon = () => (

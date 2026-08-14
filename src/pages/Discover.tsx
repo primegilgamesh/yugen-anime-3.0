@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import BottomNav from "@/components/BottomNav";
 import TopBar from "@/components/TopBar";
 import { allAnime, getGradient } from "@/data/animeData";
+import { searchAnime } from "@/lib/animeMatch";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
