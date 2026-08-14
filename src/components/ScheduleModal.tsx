@@ -178,7 +178,7 @@ const ScheduleModal = () => {
                   <div key={`${entry.id}-${entry.episode}`} className="flex gap-3 py-1">
                     <span className={`text-sm font-medium w-14 flex-shrink-0 ${passed ? "text-muted-foreground/60" : "text-primary"}`}>{t}</span>
                     <Link
-                      to={`/anime/${slugify(entry.romaji || entry.title)}`}
+                      to={`/anime/${findAnimeSlug(entry)}`}
                       className="text-muted-foreground text-sm hover:text-primary transition-colors flex-1 truncate"
                     >
                       {entry.title}
