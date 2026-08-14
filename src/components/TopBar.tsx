@@ -139,7 +139,7 @@ const TopBar = () => {
   const searchDropdown = searchQuery.trim().length > 0 && (
     <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg z-50 max-h-[320px] overflow-y-auto">
       {searchResults.map((a) => (
-        <button key={a.slug} onClick={() => handleResultClick(a.title)} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-secondary transition-colors text-left">
+        <button key={a.slug} onClick={() => handleResultClick(a.slug)} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-secondary transition-colors text-left">
           <div className={`w-8 h-10 rounded bg-gradient-to-br ${a.cover} flex-shrink-0`} />
           <div className="min-w-0">
             <p className="text-foreground text-sm font-medium truncate">{a.title}</p>
