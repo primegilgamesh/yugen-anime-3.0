@@ -63,13 +63,9 @@ const Discover = () => {
     setCurrentPage(1);
   };
 
-  const filteredAnime = allAnime.filter((a) => {
-    if (search) {
-      const haystack = [a.title, a.titleEnglish, a.titleRomaji, a.titleNative, a.synonyms]
-        .filter(Boolean).join(" ").toLowerCase();
-      const tokens = search.toLowerCase().trim().split(/\s+/).filter(Boolean);
-      if (!tokens.every((t) => haystack.includes(t))) return false;
-    }
+  const searchBase = search.trim() ? searchAnime(search, allAnime, allAnime.length) : allAnime;
+
+  const filteredAnime = searchBase.filter((a) => {
     if (selectedGenres.length > 0 && !selectedGenres.some((g) => a.genres?.includes(g))) return false;
     if (season !== "Any" && !a.season?.startsWith(season)) return false;
     if (status !== "Any" && a.status !== status) return false;
