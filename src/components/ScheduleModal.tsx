@@ -14,35 +14,15 @@ interface LiveEntry {
   id: number;
 }
 
-const slugify = (s: string) =>
-  s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-
-const normalize = (s: string) =>
-  s.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-function findAnimeSlug(entry: LiveEntry): string {
-  const candidates = [entry.romaji, entry.title].filter(Boolean);
-  const generated = slugify(entry.romaji || entry.title);
-
-  // 1. Exact slug match against generated title
-  const exact = allAnime.find((a) => a.slug === generated);
-  if (exact) return exact.slug;
-
-  // 2. Fuzzy title match across all title fields
-  for (const a of allAnime) {
-    const fields = [a.title, a.titleRomaji, a.titleEnglish, a.titleNative, a.synonyms].filter(Boolean);
-    for (const field of fields) {
-      for (const cand of candidates) {
-        if (normalize(field!).includes(normalize(cand)) || normalize(cand).includes(normalize(field!))) {
-          return a.slug;
-        }
-      }
-    }
+function resolveAnime(entry: LiveEntry): AnimeEntry | null {
+  const candidates = [entry.romaji, entry.title].filter(Boolean) as string[];
+  for (const cand of candidates) {
+    const hit = findAnime(cand, allAnime);
+    if (hit) return hit;
   }
-
-  // 3. Fallback to generated slug (page may still 404, but link is meaningful)
-  return generated;
+  return null;
 }
+
 
 // Fetch the current week's airing schedule from AniList. Public GraphQL, no auth.
 async function fetchWeekSchedule(): Promise<LiveEntry[]> {
