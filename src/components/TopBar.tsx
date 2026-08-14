@@ -56,8 +56,8 @@ const TopBar = () => {
     }
   };
 
-  const handleResultClick = (title: string) => {
-    navigate(`/discover?search=${encodeURIComponent(title)}`);
+  const handleResultClick = (slug: string) => {
+    navigate(`/anime/${slug}`);
     setSearchQuery("");
     setSearchOpen(false);
     setSearchResults([]);
