@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { allAnime } from "@/data/animeData";
+import { allAnime, AnimeEntry } from "@/data/animeData";
+import { findAnime } from "@/lib/animeMatch";
 
 const dayOrder = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
 
