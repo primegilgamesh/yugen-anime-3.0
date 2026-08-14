@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { allAnime } from "@/data/animeData";
 
 const dayOrder = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"] as const;
 
@@ -15,6 +16,33 @@ interface LiveEntry {
 
 const slugify = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+const normalize = (s: string) =>
+  s.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+function findAnimeSlug(entry: LiveEntry): string {
+  const candidates = [entry.romaji, entry.title].filter(Boolean);
+  const generated = slugify(entry.romaji || entry.title);
+
+  // 1. Exact slug match against generated title
+  const exact = allAnime.find((a) => a.slug === generated);
+  if (exact) return exact.slug;
+
+  // 2. Fuzzy title match across all title fields
+  for (const a of allAnime) {
+    const fields = [a.title, a.titleRomaji, a.titleEnglish, a.titleNative, a.synonyms].filter(Boolean);
+    for (const field of fields) {
+      for (const cand of candidates) {
+        if (normalize(field!).includes(normalize(cand)) || normalize(cand).includes(normalize(field!))) {
+          return a.slug;
+        }
+      }
+    }
+  }
+
+  // 3. Fallback to generated slug (page may still 404, but link is meaningful)
+  return generated;
+}
 
 // Fetch the current week's airing schedule from AniList. Public GraphQL, no auth.
 async function fetchWeekSchedule(): Promise<LiveEntry[]> {
