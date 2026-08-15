@@ -2250,8 +2250,7 @@ const formatBucket = (a: AnimeEntry): string => {
   return "tv";
 };
 
-const dedupeKey = (a: AnimeEntry): string => {
-  const primary = a.titleEnglish || a.title;
+const keyFromTitle = (primary: string, a: AnimeEntry): string => {
   // Sequel markers that survive punctuation stripping ("Tokyo Ghoul √A", "Nisekoi:", "Quintuplets ∬")
   const marker = /√a|∬/i.test(primary) ? "2" : /[:：]\s*$/.test(primary.trim()) ? "2" : "";
   const base = primary.toLowerCase().normalize("NFKD")
@@ -2272,6 +2271,13 @@ const dedupeKey = (a: AnimeEntry): string => {
     .sort();
   return `${tokens.join("")}|${season}|${part}|${formatBucket(a)}`;
 };
+
+/** Keys for every known title of an entry, so English/romaji duplicates collapse too. */
+const dedupeKeys = (a: AnimeEntry): string[] => {
+  const titles = [a.titleEnglish || a.title, a.title, a.titleRomaji].filter(Boolean) as string[];
+  return Array.from(new Set(titles.map((t) => keyFromTitle(t, a)).filter((k) => !k.startsWith("|"))));
+};
+
 
 
 const richness = (a: AnimeEntry) => Object.values(a).filter((v) => v !== undefined && v !== "" && v !== 0).length;
