@@ -2241,14 +2241,24 @@ donghuaCatalog.forEach((s) => { if (!allAnime.find((a) => a.slug === s.slug)) al
 // ---------------------------------------------------------------------------
 const dedupeNoise = new Set(["the", "a", "an", "of", "and", "no", "wo", "ga", "wa", "ni", "de", "tv", "anime", "series", "arc", "hen", "part", "cour"]);
 
+const formatBucket = (a: AnimeEntry): string => {
+  const raw = `${a.format ?? ""} ${a.title} ${a.titleEnglish ?? ""}`.toLowerCase();
+  if (/\bova\b/.test(raw)) return "ova";
+  if (/\bona\b/.test(raw)) return "ona";
+  if (/\bspecial\b/.test(raw)) return "special";
+  if (/\b(movie|film|gekijouban)\b/.test(raw)) return "movie";
+  return "tv";
+};
+
 const dedupeKey = (a: AnimeEntry): string => {
-  const raw = `${a.title} ${a.titleEnglish ?? ""} ${a.titleRomaji ?? ""}`;
-  const base = (a.titleEnglish || a.title).toLowerCase().normalize("NFKD")
+  const primary = a.titleEnglish || a.title;
+  // Sequel markers that survive punctuation stripping ("Tokyo Ghoul √A", "Nisekoi:")
+  const marker = /√a|\u200b/i.test(primary) ? "2" : /[:：]\s*$/.test(primary.trim()) ? "2" : "";
+  const base = primary.toLowerCase().normalize("NFKD")
     .replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
   const seasonMatch =
     base.match(/season\s*(\d+)/) || base.match(/(\d+)(?:st|nd|rd|th)\s*season/) || base.match(/\bs(\d+)\b/) || base.match(/\s(\d+)$/);
-  const season = seasonMatch ? seasonMatch[1] : "1";
-  const isMovie = /\b(movie|film|gekijouban)\b/.test(raw.toLowerCase()) ? "movie" : "tv";
+  const season = marker || (seasonMatch ? seasonMatch[1] : "1");
   const tokens = base
     .replace(/season\s*\d+/g, " ")
     .replace(/\d+(?:st|nd|rd|th)\s*season/g, " ")
@@ -2257,10 +2267,19 @@ const dedupeKey = (a: AnimeEntry): string => {
     .split(/\s+/)
     .filter((t) => t && !dedupeNoise.has(t) && !/^\d+$/.test(t))
     .sort();
-  return `${tokens.join("")}|${season}|${isMovie}`;
+  return `${tokens.join("")}|${season}|${formatBucket(a)}`;
 };
 
 const richness = (a: AnimeEntry) => Object.values(a).filter((v) => v !== undefined && v !== "" && v !== 0).length;
+
+/** A slug is "honest" when it reads like the entry's own title. */
+const slugMatchesTitle = (a: AnimeEntry) => {
+  const s = a.slug.replace(/-/g, "");
+  return [a.title, a.titleEnglish, a.titleRomaji].filter(Boolean).some((t) => {
+    const n = (t as string).toLowerCase().replace(/[^a-z0-9]/g, "");
+    return n.includes(s) || s.includes(n);
+  });
+};
 
 export const slugAliases: Record<string, string> = {};
 
@@ -2272,8 +2291,13 @@ export const slugAliases: Record<string, string> = {};
     if (!key.startsWith("|")) {
       const existing = byKey.get(key);
       if (existing) {
-        const keep = richness(entry) > richness(existing) ? entry : existing;
+        // Prefer the entry whose slug actually describes it, then the richer one.
+        const honestA = slugMatchesTitle(entry), honestB = slugMatchesTitle(existing);
+        const keep =
+          honestA !== honestB ? (honestA ? entry : existing)
+            : richness(entry) > richness(existing) ? entry : existing;
         const drop = keep === entry ? existing : entry;
+
         // merge missing fields onto the surviving entry
         for (const [k, v] of Object.entries(drop)) {
           if ((keep as any)[k] === undefined || (keep as any)[k] === "" || (keep as any)[k] === 0) {
