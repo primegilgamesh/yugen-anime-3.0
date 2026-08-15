@@ -39,7 +39,7 @@ const EpisodePlayerPage = () => {
   const playerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const anime = allAnime.find((a) => a.slug === slug);
+  const anime = resolveSlug(slug);
   const maxEps = anime?.episodes || anime?.episodeList?.length || 12;
   const episodeMissing = !!anime && (isNaN(epNum) || epNum < 1 || epNum > maxEps);
 
