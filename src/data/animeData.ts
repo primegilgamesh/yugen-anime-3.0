@@ -2232,3 +2232,72 @@ export const donghuaCatalog: AnimeEntry[] = [
   { slug: "quanzhi-fashi", title: "Quanzhi Fashi", titleEnglish: "Full-Time Magister", titleNative: "全职法师", season: "Fall 2016", score: 7.4, cover: gradients[5], dubbed: false, studios: "Shenman Entertainment", format: "ONA (Chinese)", genres: "Action, Adventure, Fantasy, School", episodes: 200, status: "Currently Airing", synopsis: "In a world overrun by monsters, Mo Fan awakens as a rare dual-element magister." },
 ];
 donghuaCatalog.forEach((s) => { if (!allAnime.find((a) => a.slug === s.slug)) allAnime.push(s); });
+
+// ---------------------------------------------------------------------------
+// Duplicate cleanup: some franchises were listed twice under different slugs
+// (e.g. "mashle" vs "mashle-magic-and-muscles"). Duplicates made cards and
+// schedule links point at half-empty pages. Merge them and keep an alias map so
+// old slugs still resolve to the surviving entry.
+// ---------------------------------------------------------------------------
+const dedupeNoise = new Set(["the", "a", "an", "of", "and", "no", "wo", "ga", "wa", "ni", "de", "tv", "anime", "series", "arc", "hen", "part", "cour"]);
+
+const dedupeKey = (a: AnimeEntry): string => {
+  const raw = `${a.title} ${a.titleEnglish ?? ""} ${a.titleRomaji ?? ""}`;
+  const base = (a.titleEnglish || a.title).toLowerCase().normalize("NFKD")
+    .replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+  const seasonMatch =
+    base.match(/season\s*(\d+)/) || base.match(/(\d+)(?:st|nd|rd|th)\s*season/) || base.match(/\bs(\d+)\b/) || base.match(/\s(\d+)$/);
+  const season = seasonMatch ? seasonMatch[1] : "1";
+  const isMovie = /\b(movie|film|gekijouban)\b/.test(raw.toLowerCase()) ? "movie" : "tv";
+  const tokens = base
+    .replace(/season\s*\d+/g, " ")
+    .replace(/\d+(?:st|nd|rd|th)\s*season/g, " ")
+    .replace(/\bs\d+\b/g, " ")
+    .replace(/\b(movie|film|gekijouban|ova|ona|special)\b/g, " ")
+    .split(/\s+/)
+    .filter((t) => t && !dedupeNoise.has(t) && !/^\d+$/.test(t))
+    .sort();
+  return `${tokens.join("")}|${season}|${isMovie}`;
+};
+
+const richness = (a: AnimeEntry) => Object.values(a).filter((v) => v !== undefined && v !== "" && v !== 0).length;
+
+export const slugAliases: Record<string, string> = {};
+
+(() => {
+  const byKey = new Map<string, AnimeEntry>();
+  const survivors: AnimeEntry[] = [];
+  for (const entry of allAnime) {
+    const key = dedupeKey(entry);
+    if (!key.startsWith("|")) {
+      const existing = byKey.get(key);
+      if (existing) {
+        const keep = richness(entry) > richness(existing) ? entry : existing;
+        const drop = keep === entry ? existing : entry;
+        // merge missing fields onto the surviving entry
+        for (const [k, v] of Object.entries(drop)) {
+          if ((keep as any)[k] === undefined || (keep as any)[k] === "" || (keep as any)[k] === 0) {
+            if (k !== "slug") (keep as any)[k] = v;
+          }
+        }
+        if (keep !== existing) {
+          const idx = survivors.indexOf(existing);
+          if (idx >= 0) survivors[idx] = keep;
+          byKey.set(key, keep);
+        }
+        slugAliases[drop.slug] = keep.slug;
+        continue;
+      }
+      byKey.set(key, entry);
+    }
+    survivors.push(entry);
+  }
+  allAnime.length = 0;
+  allAnime.push(...survivors);
+})();
+
+/** Resolve a possibly-outdated slug to the canonical catalog entry. */
+export const resolveSlug = (slug?: string): AnimeEntry | undefined => {
+  if (!slug) return undefined;
+  return allAnime.find((a) => a.slug === slug) ?? allAnime.find((a) => a.slug === slugAliases[slug]);
+};
