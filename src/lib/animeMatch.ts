@@ -6,7 +6,7 @@ const ROMAN: Record<string, number> = { i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6,
 
 const NOISE = new Set([
   "the", "a", "an", "of", "and", "wo", "no", "ga", "wa", "ni", "de",
-  "tv", "anime", "donghua", "arc", "final", "part", "cour", "series",
+  "tv", "anime", "donghua", "series",
 ]);
 
 export const slugify = (s: string) =>
@@ -103,7 +103,8 @@ export function findAnime(query: string, list: AnimeEntry[], threshold = 0.72): 
   for (const a of list) {
     let score = titleSimilarity(query, a.slug.replace(/-/g, " "));
     for (const t of titlesOf(a)) score = Math.max(score, titleSimilarity(query, t));
-    if (score > bestScore) { bestScore = score; best = a; }
+    if (score > bestScore + 0.001) { bestScore = score; best = a; }
+    else if (best && Math.abs(score - bestScore) <= 0.001 && a.title.length < best.title.length) { best = a; }
   }
   return bestScore >= threshold ? best : null;
 }
