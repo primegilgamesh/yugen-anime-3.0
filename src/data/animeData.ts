@@ -2297,38 +2297,39 @@ export const slugAliases: Record<string, string> = {};
   const byKey = new Map<string, AnimeEntry>();
   const survivors: AnimeEntry[] = [];
   for (const entry of allAnime) {
-    const key = dedupeKey(entry);
-    if (!key.startsWith("|")) {
-      const existing = byKey.get(key);
-      if (existing) {
-        // Prefer the entry whose slug actually describes it, then the richer one.
-        const honestA = slugMatchesTitle(entry), honestB = slugMatchesTitle(existing);
-        const keep =
-          honestA !== honestB ? (honestA ? entry : existing)
-            : richness(entry) > richness(existing) ? entry : existing;
-        const drop = keep === entry ? existing : entry;
+    const keys = dedupeKeys(entry);
+    const existing = keys.map((k) => byKey.get(k)).find(Boolean);
+    if (existing) {
+      // Prefer the entry whose slug actually describes it, then the richer one.
+      const honestA = slugMatchesTitle(entry), honestB = slugMatchesTitle(existing);
+      const keep =
+        honestA !== honestB ? (honestA ? entry : existing)
+          : richness(entry) > richness(existing) ? entry : existing;
+      const drop = keep === entry ? existing : entry;
 
-        // merge missing fields onto the surviving entry
-        for (const [k, v] of Object.entries(drop)) {
-          if ((keep as any)[k] === undefined || (keep as any)[k] === "" || (keep as any)[k] === 0) {
-            if (k !== "slug") (keep as any)[k] = v;
-          }
+      // merge missing fields onto the surviving entry
+      for (const [k, v] of Object.entries(drop)) {
+        if ((keep as any)[k] === undefined || (keep as any)[k] === "" || (keep as any)[k] === 0) {
+          if (k !== "slug") (keep as any)[k] = v;
         }
-        if (keep !== existing) {
-          const idx = survivors.indexOf(existing);
-          if (idx >= 0) survivors[idx] = keep;
-          byKey.set(key, keep);
-        }
-        slugAliases[drop.slug] = keep.slug;
-        continue;
       }
-      byKey.set(key, entry);
+      if (keep !== existing) {
+        const idx = survivors.indexOf(existing);
+        if (idx >= 0) survivors[idx] = keep;
+      }
+      [...dedupeKeys(keep), ...dedupeKeys(drop)].forEach((k) => byKey.set(k, keep));
+      slugAliases[drop.slug] = keep.slug;
+      // repoint aliases that pointed at the dropped entry
+      for (const [from, to] of Object.entries(slugAliases)) if (to === drop.slug) slugAliases[from] = keep.slug;
+      continue;
     }
+    keys.forEach((k) => byKey.set(k, entry));
     survivors.push(entry);
   }
   allAnime.length = 0;
   allAnime.push(...survivors);
 })();
+
 
 /** Resolve a possibly-outdated slug to the canonical catalog entry. */
 export const resolveSlug = (slug?: string): AnimeEntry | undefined => {
