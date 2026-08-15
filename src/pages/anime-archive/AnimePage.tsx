@@ -12,7 +12,7 @@ import EpisodeGrid from "@/components/EpisodeGrid";
 import ReviewsSection from "@/components/ReviewsSection";
 import AnimeHeroBanner from "@/components/AnimeHeroBanner";
 import TrailerSection from "@/components/TrailerSection";
-import { allAnime, getRelatedSeasons } from "@/data/animeData";
+import { allAnime, getRelatedSeasons, resolveSlug } from "@/data/animeData";
 import { Link } from "react-router-dom";
 
 const AnimePage = () => {
@@ -37,7 +37,7 @@ const AnimePage = () => {
 
   const goToReviews = () => handleTabChange("Reviews");
 
-  const found = allAnime.find((a) => a.slug === slug);
+  const found = resolveSlug(slug);
 
   if (!found) {
     return (

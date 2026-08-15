@@ -2232,3 +2232,107 @@ export const donghuaCatalog: AnimeEntry[] = [
   { slug: "quanzhi-fashi", title: "Quanzhi Fashi", titleEnglish: "Full-Time Magister", titleNative: "全职法师", season: "Fall 2016", score: 7.4, cover: gradients[5], dubbed: false, studios: "Shenman Entertainment", format: "ONA (Chinese)", genres: "Action, Adventure, Fantasy, School", episodes: 200, status: "Currently Airing", synopsis: "In a world overrun by monsters, Mo Fan awakens as a rare dual-element magister." },
 ];
 donghuaCatalog.forEach((s) => { if (!allAnime.find((a) => a.slug === s.slug)) allAnime.push(s); });
+
+// ---------------------------------------------------------------------------
+// Duplicate cleanup: some franchises were listed twice under different slugs
+// (e.g. "mashle" vs "mashle-magic-and-muscles"). Duplicates made cards and
+// schedule links point at half-empty pages. Merge them and keep an alias map so
+// old slugs still resolve to the surviving entry.
+// ---------------------------------------------------------------------------
+const dedupeNoise = new Set(["the", "a", "an", "of", "and", "no", "wo", "ga", "wa", "ni", "de", "tv", "anime", "series", "arc", "hen", "part", "cour"]);
+
+const formatBucket = (a: AnimeEntry): string => {
+  const raw = `${a.format ?? ""} ${a.title} ${a.titleEnglish ?? ""}`.toLowerCase();
+  if (/\bova\b/.test(raw)) return "ova";
+  if (/\bona\b/.test(raw)) return "ona";
+  if (/\bspecial\b/.test(raw)) return "special";
+  if (/\b(movie|film|gekijouban)\b/.test(raw)) return "movie";
+  return "tv";
+};
+
+const keyFromTitle = (primary: string, a: AnimeEntry): string => {
+  // Sequel markers that survive punctuation stripping ("Tokyo Ghoul √A", "Nisekoi:", "Quintuplets ∬")
+  const marker = /√a|∬/i.test(primary) ? "2" : /[:：]\s*$/.test(primary.trim()) ? "2" : "";
+  const base = primary.toLowerCase().normalize("NFKD")
+    .replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+  const seasonMatch =
+    base.match(/season\s*(\d+)/) || base.match(/(\d+)(?:st|nd|rd|th)\s*season/) || base.match(/\bs(\d+)\b/) || base.match(/\s(\d+)$/);
+  const season = marker || (seasonMatch ? seasonMatch[1] : "1");
+  const partMatch = `${primary} ${a.slug}`.toLowerCase().match(/\b(?:part|cour|p)\s*-?\s*(\d+)\b/);
+  const part = partMatch ? partMatch[1] : "1";
+  const tokens = base
+    .replace(/season\s*\d+/g, " ")
+    .replace(/\d+(?:st|nd|rd|th)\s*season/g, " ")
+    .replace(/\bs\d+\b/g, " ")
+    .replace(/\b(?:part|cour)\s*\d+/g, " ")
+    .replace(/\b(movie|film|gekijouban|ova|ona|special)\b/g, " ")
+    .split(/\s+/)
+    .filter((t) => t && !dedupeNoise.has(t) && !/^\d+$/.test(t))
+    .sort();
+  return `${tokens.join("")}|${season}|${part}|${formatBucket(a)}`;
+};
+
+/** Keys for every known title of an entry, so English/romaji duplicates collapse too. */
+const dedupeKeys = (a: AnimeEntry): string[] => {
+  const titles = [a.titleEnglish || a.title, a.title, a.titleRomaji].filter(Boolean) as string[];
+  return Array.from(new Set(titles.map((t) => keyFromTitle(t, a)).filter((k) => !k.startsWith("|"))));
+};
+
+
+
+const richness = (a: AnimeEntry) => Object.values(a).filter((v) => v !== undefined && v !== "" && v !== 0).length;
+
+/** A slug is "honest" when it reads like the entry's own title. */
+const slugMatchesTitle = (a: AnimeEntry) => {
+  const s = a.slug.replace(/-/g, "");
+  return [a.title, a.titleEnglish, a.titleRomaji].filter(Boolean).some((t) => {
+    const n = (t as string).toLowerCase().replace(/[^a-z0-9]/g, "");
+    return n.includes(s) || s.includes(n);
+  });
+};
+
+export const slugAliases: Record<string, string> = {};
+
+(() => {
+  const byKey = new Map<string, AnimeEntry>();
+  const survivors: AnimeEntry[] = [];
+  for (const entry of allAnime) {
+    const keys = dedupeKeys(entry);
+    const existing = keys.map((k) => byKey.get(k)).find(Boolean);
+    if (existing) {
+      // Prefer the entry whose slug actually describes it, then the richer one.
+      const honestA = slugMatchesTitle(entry), honestB = slugMatchesTitle(existing);
+      const keep =
+        honestA !== honestB ? (honestA ? entry : existing)
+          : richness(entry) > richness(existing) ? entry : existing;
+      const drop = keep === entry ? existing : entry;
+
+      // merge missing fields onto the surviving entry
+      for (const [k, v] of Object.entries(drop)) {
+        if ((keep as any)[k] === undefined || (keep as any)[k] === "" || (keep as any)[k] === 0) {
+          if (k !== "slug") (keep as any)[k] = v;
+        }
+      }
+      if (keep !== existing) {
+        const idx = survivors.indexOf(existing);
+        if (idx >= 0) survivors[idx] = keep;
+      }
+      [...dedupeKeys(keep), ...dedupeKeys(drop)].forEach((k) => byKey.set(k, keep));
+      slugAliases[drop.slug] = keep.slug;
+      // repoint aliases that pointed at the dropped entry
+      for (const [from, to] of Object.entries(slugAliases)) if (to === drop.slug) slugAliases[from] = keep.slug;
+      continue;
+    }
+    keys.forEach((k) => byKey.set(k, entry));
+    survivors.push(entry);
+  }
+  allAnime.length = 0;
+  allAnime.push(...survivors);
+})();
+
+
+/** Resolve a possibly-outdated slug to the canonical catalog entry. */
+export const resolveSlug = (slug?: string): AnimeEntry | undefined => {
+  if (!slug) return undefined;
+  return allAnime.find((a) => a.slug === slug) ?? allAnime.find((a) => a.slug === slugAliases[slug]);
+};
