@@ -2252,23 +2252,27 @@ const formatBucket = (a: AnimeEntry): string => {
 
 const dedupeKey = (a: AnimeEntry): string => {
   const primary = a.titleEnglish || a.title;
-  // Sequel markers that survive punctuation stripping ("Tokyo Ghoul √A", "Nisekoi:")
-  const marker = /√a|\u200b/i.test(primary) ? "2" : /[:：]\s*$/.test(primary.trim()) ? "2" : "";
+  // Sequel markers that survive punctuation stripping ("Tokyo Ghoul √A", "Nisekoi:", "Quintuplets ∬")
+  const marker = /√a|∬/i.test(primary) ? "2" : /[:：]\s*$/.test(primary.trim()) ? "2" : "";
   const base = primary.toLowerCase().normalize("NFKD")
     .replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
   const seasonMatch =
     base.match(/season\s*(\d+)/) || base.match(/(\d+)(?:st|nd|rd|th)\s*season/) || base.match(/\bs(\d+)\b/) || base.match(/\s(\d+)$/);
   const season = marker || (seasonMatch ? seasonMatch[1] : "1");
+  const partMatch = `${primary} ${a.slug}`.toLowerCase().match(/\b(?:part|cour|p)\s*-?\s*(\d+)\b/);
+  const part = partMatch ? partMatch[1] : "1";
   const tokens = base
     .replace(/season\s*\d+/g, " ")
     .replace(/\d+(?:st|nd|rd|th)\s*season/g, " ")
     .replace(/\bs\d+\b/g, " ")
+    .replace(/\b(?:part|cour)\s*\d+/g, " ")
     .replace(/\b(movie|film|gekijouban|ova|ona|special)\b/g, " ")
     .split(/\s+/)
     .filter((t) => t && !dedupeNoise.has(t) && !/^\d+$/.test(t))
     .sort();
-  return `${tokens.join("")}|${season}|${formatBucket(a)}`;
+  return `${tokens.join("")}|${season}|${part}|${formatBucket(a)}`;
 };
+
 
 const richness = (a: AnimeEntry) => Object.values(a).filter((v) => v !== undefined && v !== "" && v !== 0).length;
 
