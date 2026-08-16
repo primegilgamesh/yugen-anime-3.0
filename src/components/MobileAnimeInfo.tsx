@@ -19,7 +19,11 @@ const MobileAnimeInfo = ({ anime, hideReviewButton, onWriteReview }: Props) => {
     const update = () => { setStats(aggregateAnimeStats(anime.slug)); setAvg(averageUserScore(anime.slug)); };
     update();
     window.addEventListener("storage", update);
-    return () => window.removeEventListener("storage", update);
+    window.addEventListener("yugen-favs-update", update);
+    return () => {
+      window.removeEventListener("storage", update);
+      window.removeEventListener("yugen-favs-update", update);
+    };
   }, [anime.slug]);
   // Reflects real users who favorited this anime (one per account).
   const totalFavs = stats.favorites;
