@@ -7,6 +7,7 @@ import { loadUsers, saveUsers, SecureUser } from "@/lib/cryptoStore";
 import { broadcastAdminNotification } from "@/contexts/NotificationsContext";
 import { allAnime } from "@/data/animeData";
 import { aggregateAnimeStats } from "@/lib/animeStats";
+import { runLinkAudit, auditSummary, LinkAuditRow, LinkStatus } from "@/lib/linkAudit";
 import { toast } from "sonner";
 import { Ban, CheckCircle2, Send, Trash2, Plus, Save, Search } from "lucide-react";
 
@@ -48,7 +49,7 @@ const AdminLoginGate = () => {
   );
 };
 
-type Tab = "animes" | "users" | "stats" | "broadcast" | "home" | "admins";
+type Tab = "animes" | "users" | "stats" | "broadcast" | "home" | "admins" | "links";
 
 const Admin = () => {
   const { isAdmin, isLoggedIn } = useAuth();
@@ -79,6 +80,7 @@ const Admin = () => {
             ["broadcast", "Broadcast"],
             ["home", "Home Layout"],
             ["admins", "Admins"],
+            ["links", "Link Audit"],
           ] as [Tab, string][]).map(([id, label]) => (
             <button key={id} onClick={() => setTab(id)} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${tab === id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>{label}</button>
           ))}
@@ -89,6 +91,7 @@ const Admin = () => {
         {tab === "broadcast" && <BroadcastTab />}
         {tab === "home" && <HomeLayoutTab />}
         {tab === "admins" && <AdminsTab />}
+        {tab === "links" && <LinksTab />}
       </main>
     </div>
   );
@@ -574,6 +577,83 @@ const AdminsTab = () => {
           ))}
         </div>
       </section>
+    </div>
+  );
+};
+
+/* ---------------- Link audit ---------------- */
+const STATUS_STYLES: Record<LinkStatus, string> = {
+  ok: "bg-primary/15 text-primary",
+  alias: "bg-secondary text-muted-foreground",
+  mismatch: "bg-destructive/15 text-destructive",
+  missing: "bg-destructive/25 text-destructive",
+};
+
+const LinksTab = () => {
+  const [rows, setRows] = useState<LinkAuditRow[]>(() => runLinkAudit());
+  const [filter, setFilter] = useState<"all" | LinkStatus>("all");
+  const [q, setQ] = useState("");
+
+  const summary = useMemo(() => auditSummary(rows), [rows]);
+  const filtered = rows
+    .filter((r) => (filter === "all" ? true : r.status === filter))
+    .filter((r) => r.label.toLowerCase().includes(q.toLowerCase()) || r.linkedSlug.includes(q.toLowerCase()))
+    .slice(0, 300);
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <StatCard label="Links scanned" value={summary.total} />
+        <StatCard label="Correct" value={summary.ok} />
+        <StatCard label="Aliased" value={summary.alias} />
+        <StatCard label="Mismatched" value={summary.mismatch} />
+        <StatCard label="Missing" value={summary.missing} />
+      </div>
+
+      <div className="bg-card border border-border rounded-lg p-4">
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          {(["all", "mismatch", "missing", "alias", "ok"] as const).map((s) => (
+            <button key={s} onClick={() => setFilter(s)} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${filter === s ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>
+              {s === "all" ? "All" : s[0].toUpperCase() + s.slice(1)}
+            </button>
+          ))}
+          <div className="flex items-center gap-2 flex-1 min-w-[160px]">
+            <Search size={14} className="text-muted-foreground" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search links…" className="bg-secondary text-sm rounded-md px-3 py-1.5 outline-none text-foreground flex-1" />
+          </div>
+          <button onClick={() => setRows(runLinkAudit())} className="bg-secondary text-foreground text-xs px-3 py-1.5 rounded-md hover:opacity-90">Re-scan</button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-left text-muted-foreground">
+                <th className="py-2 font-medium">Source</th>
+                <th className="py-2 font-medium">Link label</th>
+                <th className="py-2 font-medium">Linked slug</th>
+                <th className="py-2 font-medium">Resolves to</th>
+                <th className="py-2 font-medium">Suggested</th>
+                <th className="py-2 font-medium text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((r, i) => (
+                <tr key={`${r.source}-${r.linkedSlug}-${i}`} className="border-t border-border align-top">
+                  <td className="py-2 text-muted-foreground">{r.source}</td>
+                  <td className="py-2 text-foreground max-w-[200px] truncate">{r.label}</td>
+                  <td className="py-2 text-muted-foreground">{r.linkedSlug}</td>
+                  <td className="py-2 text-foreground max-w-[180px] truncate">{r.resolvedTitle || "—"}</td>
+                  <td className="py-2 text-muted-foreground max-w-[180px] truncate">{r.status === "ok" ? "—" : r.suggestedSlug || "no confident match"}</td>
+                  <td className="py-2 text-right">
+                    <span className={`px-2 py-0.5 rounded-md font-semibold ${STATUS_STYLES[r.status]}`}>{r.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {filtered.length === 0 && <p className="text-muted-foreground text-xs py-6 text-center">No links in this category.</p>}
+        </div>
+      </div>
     </div>
   );
 };

@@ -133,6 +133,8 @@ export const ListProvider = ({ children }: { children: ReactNode }) => {
     setFavorites((prev) => {
       const next = exists ? prev.filter((f) => f.slug !== slug) : [...prev, { slug, title, cover, addedAt: Date.now() }];
       if (favKey) localStorage.setItem(favKey, JSON.stringify(next));
+      // notify same-tab listeners (favorite counters) — `storage` only fires cross-tab
+      window.dispatchEvent(new Event("yugen-favs-update"));
       return next;
     });
     return !exists;
