@@ -49,7 +49,7 @@ const AdminLoginGate = () => {
   );
 };
 
-type Tab = "animes" | "users" | "stats" | "broadcast" | "home" | "admins";
+type Tab = "animes" | "users" | "stats" | "broadcast" | "home" | "admins" | "links";
 
 const Admin = () => {
   const { isAdmin, isLoggedIn } = useAuth();
@@ -80,6 +80,7 @@ const Admin = () => {
             ["broadcast", "Broadcast"],
             ["home", "Home Layout"],
             ["admins", "Admins"],
+            ["links", "Link Audit"],
           ] as [Tab, string][]).map(([id, label]) => (
             <button key={id} onClick={() => setTab(id)} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${tab === id ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"}`}>{label}</button>
           ))}
@@ -90,6 +91,7 @@ const Admin = () => {
         {tab === "broadcast" && <BroadcastTab />}
         {tab === "home" && <HomeLayoutTab />}
         {tab === "admins" && <AdminsTab />}
+        {tab === "links" && <LinksTab />}
       </main>
     </div>
   );
