@@ -18,7 +18,7 @@ const catalog: AnimeEntry[] = [
 
 describe("slugify", () => {
   it("normalizes punctuation and accents", () => {
-    expect(slugify("Ranma ½ (2024)")).toBe("ranma-2024");
+    expect(slugify("Ranma ½ (2024)")).toBe("ranma-1-2-2024");
     expect(slugify("Sousou no Frieren")).toBe("sousou-no-frieren");
   });
 });
