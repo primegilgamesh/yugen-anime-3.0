@@ -1,3 +1,4 @@
+import { franchiseMovieEntries } from "./franchiseMovies";
 export interface EpisodeInfo {
   num: number;
   title: string;
@@ -2232,6 +2233,9 @@ export const donghuaCatalog: AnimeEntry[] = [
   { slug: "quanzhi-fashi", title: "Quanzhi Fashi", titleEnglish: "Full-Time Magister", titleNative: "全职法师", season: "Fall 2016", score: 7.4, cover: gradients[5], dubbed: false, studios: "Shenman Entertainment", format: "ONA (Chinese)", genres: "Action, Adventure, Fantasy, School", episodes: 200, status: "Currently Airing", synopsis: "In a world overrun by monsters, Mo Fan awakens as a rare dual-element magister." },
 ];
 donghuaCatalog.forEach((s) => { if (!allAnime.find((a) => a.slug === s.slug)) allAnime.push(s); });
+
+// Franchise movies, specials, OVAs, prequels and sequels.
+franchiseMovieEntries.forEach((s) => { if (!allAnime.find((a) => a.slug === s.slug)) allAnime.push(s); });
 
 // ---------------------------------------------------------------------------
 // Duplicate cleanup: some franchises were listed twice under different slugs
