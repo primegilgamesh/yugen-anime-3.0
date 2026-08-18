@@ -107,16 +107,9 @@ const rows: Row[] = [
   ["tokyo-ghoul-jack-pinto-ova", "Tokyo Ghoul: Jack / Pinto", "Tokyo Ghoul: Jack & Pinto OVA", "Fall 2015", 7.1, "OVA", 2, "Action, Horror, Supernatural", "Studio Pierrot", "Prequel OVAs following Arima's youth and Tsukiyama's school days."],
 
   // ---- Ghibli & Shinkai ----
-  ["spirited-away-movie", "Sen to Chihiro no Kamikakushi", "Spirited Away", "Summer 2001", 9.0, "Movie", 1, "Adventure, Fantasy, Supernatural", "Studio Ghibli", "Chihiro must work in a spirit bathhouse to free her parents."],
-  ["princess-mononoke-movie", "Mononoke Hime", "Princess Mononoke", "Summer 1997", 8.7, "Movie", 1, "Adventure, Fantasy, Historical", "Studio Ghibli", "Ashitaka is caught between the forest gods and the iron town."],
-  ["howls-moving-castle-movie", "Howl no Ugoku Shiro", "Howl's Moving Castle", "Fall 2004", 8.7, "Movie", 1, "Adventure, Fantasy, Romance", "Studio Ghibli", "Cursed into an old woman, Sophie takes shelter in a wandering castle."],
   ["the-boy-and-the-heron", "Kimi-tachi wa Dou Ikiru ka", "The Boy and the Heron", "Summer 2023", 8.3, "Movie", 1, "Adventure, Fantasy, Drama", "Studio Ghibli", "Grieving Mahito follows a talking heron into a world of the dead."],
-  ["your-name-movie", "Kimi no Na wa.", "Your Name.", "Summer 2016", 8.8, "Movie", 1, "Romance, Supernatural, Drama", "CoMix Wave Films", "Two teenagers swap bodies across distance and time."],
-  ["weathering-with-you-movie", "Tenki no Ko", "Weathering with You", "Summer 2019", 8.3, "Movie", 1, "Romance, Fantasy, Drama", "CoMix Wave Films", "A runaway boy meets a girl who can clear the endless Tokyo rain."],
-  ["suzume-movie", "Suzume no Tojimari", "Suzume", "Fall 2022", 8.3, "Movie", 1, "Adventure, Fantasy, Drama", "CoMix Wave Films", "Suzume closes mysterious doors that unleash disaster across Japan."],
 
   // ---- Other major films, specials and OVAs ----
-  ["a-silent-voice-movie", "Koe no Katachi", "A Silent Voice", "Summer 2016", 8.9, "Movie", 1, "Drama, Romance, School", "Kyoto Animation", "A former bully seeks redemption with the deaf girl he tormented."],
   ["violet-evergarden-the-movie", "Violet Evergarden Movie", "Violet Evergarden: The Movie", "Fall 2020", 8.9, "Movie", 1, "Drama, Fantasy, Romance", "Kyoto Animation", "Violet's search for the Major reaches its conclusion."],
   ["a-whisker-away-movie", "Nakitai Watashi wa Neko wo Kaburu", "A Whisker Away", "Summer 2020", 7.5, "Movie", 1, "Romance, Fantasy, Drama", "Studio Colorido", "A girl uses a magic mask to become a cat and get close to her crush."],
   ["haikyuu-dumpster-battle-movie", "Haikyuu!! Movie: Gomisuteba no Kessen", "Haikyu!! The Dumpster Battle", "Winter 2024", 8.6, "Movie", 1, "Sports, Comedy, School, Shounen", "Production I.G", "Karasuno faces Nekoma in the long-awaited Dumpster Battle."],
@@ -129,12 +122,7 @@ const rows: Row[] = [
   ["psycho-pass-providence-movie", "Psycho-Pass Movie: Providence", "Psycho-Pass: Providence", "Spring 2023", 7.6, "Movie", 1, "Action, Psychological, Sci-Fi", "Production I.G", "Akane investigates a case that bridges the Sibyl System's history."],
   ["evangelion-3-0-1-0-thrice-upon-a-time", "Shin Evangelion Gekijouban", "Evangelion: 3.0+1.0 Thrice Upon a Time", "Spring 2021", 8.6, "Movie", 1, "Action, Drama, Mecha, Sci-Fi, Psychological", "Studio Khara", "The Rebuild saga ends as Shinji faces the final Impact."],
   ["the-end-of-evangelion", "Shin Seiki Evangelion Gekijouban: Air/Magokoro wo, Kimi ni", "The End of Evangelion", "Summer 1997", 8.5, "Movie", 1, "Drama, Mecha, Psychological, Sci-Fi", "Gainax", "The alternate, apocalyptic conclusion to Neon Genesis Evangelion."],
-  ["akira-movie", "Akira", "Akira", "Summer 1988", 8.2, "Movie", 1, "Action, Sci-Fi, Cyberpunk, Psychological", "Tokyo Movie Shinsha", "Kaneda hunts his mutating friend Tetsuo through Neo-Tokyo."],
   ["ghost-in-the-shell-movie", "Koukaku Kidoutai", "Ghost in the Shell", "Fall 1995", 8.3, "Movie", 1, "Action, Sci-Fi, Cyberpunk, Psychological", "Production I.G", "Major Kusanagi hunts the Puppet Master and questions her own soul."],
-  ["perfect-blue-movie", "Perfect Blue", "Perfect Blue", "Winter 1997", 8.6, "Movie", 1, "Psychological, Thriller, Drama", "Madhouse", "An idol turned actress loses her grip on reality."],
-  ["paprika-movie", "Paprika", "Paprika", "Fall 2006", 8.2, "Movie", 1, "Psychological, Sci-Fi, Fantasy", "Madhouse", "A stolen dream device blurs the line between sleep and waking."],
-  ["wolf-children-movie", "Ookami Kodomo no Ame to Yuki", "Wolf Children", "Summer 2012", 8.6, "Movie", 1, "Drama, Fantasy, Slice of Life", "Studio Chizu", "Hana raises two children who can turn into wolves."],
-  ["summer-wars-movie", "Summer Wars", "Summer Wars", "Summer 2009", 7.9, "Movie", 1, "Sci-Fi, Comedy, Drama", "Madhouse", "A math prodigy fights a rogue AI threatening the virtual world OZ."],
   ["belle-movie", "Ryuu to Sobakasu no Hime", "Belle", "Summer 2021", 7.8, "Movie", 1, "Drama, Fantasy, Music, Sci-Fi", "Studio Chizu", "A shy teen becomes a global singing star inside the virtual world U."],
   ["spy-x-family-code-white", "Spy x Family Movie: Code: White", "Spy x Family Code: White", "Winter 2023", 7.9, "Movie", 1, "Action, Comedy, Shounen", "Wit Studio", "A family trip turns into a mission to stop a war over dessert."],
   ["the-first-slam-dunk", "The First Slam Dunk", "The First Slam Dunk", "Winter 2022", 8.7, "Movie", 1, "Sports, Drama, Shounen", "Toei Animation", "Ryota Miyagi leads Shohoku against the unbeatable Sannoh."],
@@ -143,7 +131,6 @@ const rows: Row[] = [
   ["hunter-x-hunter-the-last-mission", "Gekijouban Hunter x Hunter: The Last Mission", "Hunter x Hunter: The Last Mission", "Winter 2013", 7.1, "Movie", 1, "Action, Adventure, Shounen", "Madhouse", "The Shadow, a group of exiled Hunters, attacks Heavens Arena."],
   ["fairy-tail-dragon-cry", "Fairy Tail Movie 2: Dragon Cry", "Fairy Tail: Dragon Cry", "Spring 2017", 7.3, "Movie", 1, "Action, Adventure, Fantasy, Shounen", "A-1 Pictures", "The guild races to recover a staff that can destroy the world."],
   ["black-clover-sword-of-the-wizard-king", "Black Clover: Mahou Tei no Ken", "Black Clover: Sword of the Wizard King", "Summer 2023", 7.5, "Movie", 1, "Action, Fantasy, Shounen", "Studio Pierrot", "Four resurrected Wizard Kings threaten the Clover Kingdom."],
-  ["blue-lock-episode-nagi", "Blue Lock: Episode Nagi", "Blue Lock: Episode Nagi", "Spring 2024", 7.4, "Movie", 1, "Sports, Drama, Shounen", "8bit", "The Blue Lock project retold from Nagi Seishiro's point of view."],
   ["given-movie", "Given Movie", "Given: The Movie", "Summer 2020", 8.0, "Movie", 1, "Drama, Music, Romance, Boys Love", "Lerche", "Akihiko and Haruki's relationship comes to a head after the band's rise."],
   ["kaguya-sama-first-kiss-movie", "Kaguya-sama wa Kokurasetai: First Kiss wa Owaranai", "Kaguya-sama: Love Is War - The First Kiss That Never Ends", "Winter 2022", 8.7, "Movie", 1, "Comedy, Romance, School, Psychological", "A-1 Pictures", "Shirogane and Kaguya navigate the aftermath of their first kiss."],
   ["rurouni-kenshin-tsuiokuhen", "Rurouni Kenshin: Meiji Kenkaku Romantan - Tsuiokuhen", "Rurouni Kenshin: Trust & Betrayal", "Winter 1999", 8.6, "OVA", 4, "Action, Drama, Historical, Romance", "Studio Deen", "The origin of Kenshin's cross-shaped scar during the Bakumatsu."],
