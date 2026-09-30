@@ -89,7 +89,6 @@ export { validateUsername, validateEmail, validatePassword };
 type StoredUser = SecureUser;
 
 export const ADMIN_EMAIL = "yugenanimecc@gmail.com";
-const DEFAULT_ADMIN_PASSWORD = "Lordson@18";
 export const OWNER_PASSWORD_KEY = "yugen_owner_password";
 const getOwnerPassword = (): string => {
   try {
@@ -97,11 +96,16 @@ const getOwnerPassword = (): string => {
     if (stored && stored.startsWith("enc:")) {
       return decryptField(stored);
     }
-    return stored || DEFAULT_ADMIN_PASSWORD;
-  } catch { return DEFAULT_ADMIN_PASSWORD; }
+    return stored || "";
+  } catch { return ""; }
 };
 export const setOwnerPassword = (next: string) => {
-  localStorage.setItem(OWNER_PASSWORD_KEY, encryptField(next));
+  const normalized = next.trim();
+  if (!normalized) {
+    localStorage.removeItem(OWNER_PASSWORD_KEY);
+    return;
+  }
+  localStorage.setItem(OWNER_PASSWORD_KEY, encryptField(normalized));
 };
 
 export interface AdminAccount { email: string; password: string; name?: string; addedAt: number }
@@ -207,19 +211,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       writeAttempts(a);
     };
 
-    // Admin login shortcut — does not require a registered account.
-    if (email === ADMIN_EMAIL && password === getOwnerPassword()) {
-      const adminData: User = {
-        username: "Admin",
-        email: ADMIN_EMAIL,
-        avatar: `https://api.dicebear.com/7.x/lorelei/svg?seed=Admin`,
-        isAdmin: true,
-      };
-      setUser(adminData);
-      localStorage.setItem("yugen_current_user", JSON.stringify(adminData));
-      recordAdminLogin(email);
-      onSuccess();
-      return { success: true };
+    const ownerPassword = getOwnerPassword();
+
+    // Admin login shortcut — requires a configured owner password.
+    if (email === ADMIN_EMAIL) {
+      if (!ownerPassword) {
+        return { success: false, error: "Owner admin password is not configured yet. Set it in the Admin panel first." };
+      }
+      if (password === ownerPassword) {
+        const adminData: User = {
+          username: "Admin",
+          email: ADMIN_EMAIL,
+          avatar: `https://api.dicebear.com/7.x/lorelei/svg?seed=Admin`,
+          isAdmin: true,
+        };
+        setUser(adminData);
+        localStorage.setItem("yugen_current_user", JSON.stringify(adminData));
+        recordAdminLogin(email);
+        onSuccess();
+        return { success: true };
+      }
+      onFailure();
+      return { success: false, error: "Incorrect password" };
     }
 
     const extra = findExtraAdmin(email, password);
