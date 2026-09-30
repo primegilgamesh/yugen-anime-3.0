@@ -160,73 +160,69 @@ const Home = () => {
       <div className="md:ml-[70px]">
         <TopBar />
 
-        {/* Hero Slideshow */}
+        {/* Hero Slideshow — matches original YugenAnime spotlight */}
+        <div className="px-4 md:px-6 pt-4">
         <div
-          className="relative w-full h-[200px] md:h-[300px] overflow-hidden"
+          className="relative w-full h-[220px] md:h-[395px] overflow-hidden rounded-md bg-card"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
           {heroSlides.map((pick, i) => (
-            <Link
+            <div
               key={pick.slug + i}
-              to={`/anime/${pick.slug}`}
-              className={`absolute inset-0 transition-opacity duration-700 ${i === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"}`}
+              className={`absolute inset-0 transition-opacity duration-700 ${i === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"}`}
             >
-              {/* Left side: blurred background */}
-              <div className="absolute inset-0">
-                <div className={`absolute inset-0 bg-gradient-to-br ${pick.cover}`} />
-                <div className="absolute inset-0 backdrop-blur-md bg-black/40" />
-              </div>
+              {/* Blurred banner background */}
+              <Link to={`/anime/${pick.slug}`} className="absolute inset-0 overflow-hidden">
+                <div className={`absolute -inset-6 bg-gradient-to-br ${pick.cover} blur-xl scale-110 opacity-70`} />
+                <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/60 to-background/20" />
+              </Link>
 
-              {/* Right side: clear anime image, clipped by diagonal */}
-              <div className="absolute inset-0 pointer-events-none" style={{
-                clipPath: 'polygon(55% 0%, 100% 0%, 100% 100%, 45% 100%)',
-              }}>
-                <div className={`w-full h-full bg-gradient-to-br ${pick.cover}`} />
-              </div>
-              {/* Desktop: move diagonal to 3/4 */}
-              <div className="absolute inset-0 pointer-events-none hidden md:block" style={{
-                clipPath: 'polygon(72% 0%, 100% 0%, 100% 100%, 62% 100%)',
-              }}>
-                <div className={`w-full h-full bg-gradient-to-br ${pick.cover}`} />
-              </div>
+              {/* Slanted poster with white edges */}
+              <Link
+                to={`/anime/${pick.slug}`}
+                className="absolute top-0 bottom-0 right-[6%] w-[42%] md:w-[36%] hidden sm:block"
+                style={{ clipPath: "polygon(24% 0, 100% 0, 76% 100%, 0 100%)" }}
+              >
+                <div className="absolute inset-0 bg-foreground" />
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${pick.cover}`}
+                  style={{ clipPath: "polygon(calc(24% + 16px) 0, calc(100% - 16px) 0, calc(76% - 16px) 100%, 16px 100%)" }}
+                />
+              </Link>
 
-
-              {/* Left side: text content */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 right-[45%] md:bottom-8 md:left-8 md:right-[30%]">
-                <span className="text-primary text-[10px] font-bold uppercase tracking-wider">#{i + 1} Spotlight</span>
-                <h2 className="font-display text-lg md:text-3xl font-bold text-foreground mt-1 line-clamp-2">{pick.title}</h2>
-                <p className="text-secondary-foreground text-xs md:text-sm mt-1 max-w-md leading-relaxed hidden md:block">
-                  {pick.synopsis?.slice(0, 160)}...
+              {/* Text content */}
+              <div className="absolute inset-y-0 left-5 right-5 sm:right-[45%] md:left-[60px] flex flex-col justify-center">
+                <span className="text-primary text-xs md:text-sm font-semibold">#{i + 1} Spotlight</span>
+                <Link to={`/anime/${pick.slug}`}>
+                  <h2 className="font-display text-xl md:text-[34px] md:leading-[1] font-bold text-foreground mt-2 line-clamp-2">{pick.title}</h2>
+                </Link>
+                <p className="text-foreground/90 text-[13px] mt-3 max-w-[520px] leading-snug line-clamp-3 hidden md:block">
+                  {pick.synopsis?.slice(0, 180)}...
                 </p>
-                <div className="flex items-center gap-2 mt-3">
-                  <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1.5 rounded-md flex items-center gap-1">
-                    <Play size={12} /> Watch Now
-                  </span>
-                  <span className="text-foreground text-xs font-medium flex items-center gap-1 opacity-80">
-                    <Play size={12} /> View Details
-                  </span>
+                <div className="flex items-center gap-4 mt-4">
+                  <Link to={`/anime/${pick.slug}/watch/1`} className="bg-primary text-primary-foreground text-xs font-medium px-4 py-3 rounded-sm flex items-center gap-1.5 hover:opacity-90">
+                    <Play size={14} fill="currentColor" /> Watch Now
+                  </Link>
+                  <Link to={`/anime/${pick.slug}`} className="text-foreground text-xs font-medium flex items-center gap-1.5 hover:text-primary">
+                    <Play size={14} /> View Details
+                  </Link>
                 </div>
               </div>
-            </Link>
+            </div>
           ))}
 
-          {/* Desktop translucent arrow buttons */}
-          <button
-            onClick={() => setCurrentSlide((p) => (p - 1 + heroSlides.length) % heroSlides.length)}
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 hidden md:flex items-center justify-center w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full transition"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <button
-            onClick={() => setCurrentSlide((p) => (p + 1) % heroSlides.length)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 hidden md:flex items-center justify-center w-10 h-10 bg-black/30 hover:bg-black/50 text-white rounded-full transition"
-          >
-            <ChevronRight size={20} />
-          </button>
-
+          {/* Progress bar */}
+          <div className="absolute bottom-0 left-0 right-0 h-[3px] z-20">
+            <div
+              key={currentSlide}
+              className="h-full bg-primary"
+              style={{ animation: `hero-progress ${SLIDE_DURATION}ms linear forwards` }}
+            />
+          </div>
+          <style>{`@keyframes hero-progress{from{width:0}to{width:100%}}`}</style>
+        </div>
         </div>
 
         <div className="px-4 md:px-6 py-4 space-y-8">
