@@ -12,6 +12,7 @@ import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import "@/data/scheduleData"; // ensures schedule merges into allAnime so pages auto-generate
 import ScrollToTop from "@/components/ScrollToTop";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import CookieConsent from "@/components/CookieConsent";
 import Home from "./pages/Home";
 import AnimePage from "./pages/anime-archive/AnimePage";
 import EpisodePlayerPage from "./pages/anime-archive/EpisodePlayerPage";
@@ -44,6 +45,7 @@ const App = () => (
               <Sonner position="top-right" />
               <BrowserRouter>
                 <ScrollToTop />
+                <CookieConsent />
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/anime/:slug" element={<AnimePage />} />
