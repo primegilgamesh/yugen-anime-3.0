@@ -17,6 +17,7 @@ import {
 } from "@/data/animeData";
 import { recentEpisodes } from "@/data/recentEpisodes";
 import { useReviewLikes } from "@/contexts/ReviewLikesContext";
+import AnimeArtwork from "@/components/AnimeArtwork";
 
 const HOME_OVERRIDES_KEY = "yugen_home_overrides";
 const useHomeOverrides = () => {
@@ -94,13 +95,13 @@ const Home = () => {
 
   const AnimePortraitCard = ({ anime, i }: { anime: typeof trendingAiring[0]; i: number }) => (
     <Link to={`/anime/${anime.slug}`} key={anime.slug} className="group block">
-      <div className={`relative rounded-md overflow-hidden bg-gradient-to-br ${getGradient(i)} aspect-[3/4]`}>
+      <AnimeArtwork cover={anime.cover || getGradient(i)} className="relative rounded-md overflow-hidden aspect-[3/4]">
         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
         {anime.dubbed && <div className="absolute bottom-8 left-1.5 bg-card/80 text-foreground text-[9px] flex items-center gap-0.5 px-1.5 py-0.5 rounded"><Headphones size={10} /> Available in Dub</div>}
         <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
           <p className="text-foreground text-xs font-semibold leading-tight truncate">{anime.title}</p>
         </div>
-      </div>
+      </AnimeArtwork>
       <div className="mt-1.5">
         <p className="text-foreground text-xs font-medium truncate group-hover:text-primary transition-colors">{anime.title}</p>
         <div className="flex items-center gap-2 mt-0.5">
@@ -175,7 +176,7 @@ const Home = () => {
             >
               {/* Blurred banner background */}
               <Link to={`/anime/${pick.slug}`} className="absolute inset-0 overflow-hidden">
-                <div className={`absolute -inset-6 bg-gradient-to-br ${pick.cover} blur-xl scale-110 opacity-70`} />
+                <AnimeArtwork cover={pick.cover} className="absolute -inset-6 blur-xl scale-110 opacity-70" />
                 <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/60 to-background/20" />
               </Link>
 
@@ -186,10 +187,7 @@ const Home = () => {
                 style={{ clipPath: "polygon(24% 0, 100% 0, 76% 100%, 0 100%)" }}
               >
                 <div className="absolute inset-0 bg-foreground" />
-                <div
-                  className={`absolute inset-0 bg-gradient-to-br ${pick.cover}`}
-                  style={{ clipPath: "polygon(calc(24% + 16px) 0, calc(100% - 16px) 0, calc(76% - 16px) 100%, 16px 100%)" }}
-                />
+                <AnimeArtwork cover={pick.cover} className="absolute inset-4" />
               </Link>
 
               {/* Text content */}

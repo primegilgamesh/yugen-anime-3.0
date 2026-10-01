@@ -6,6 +6,8 @@ import TopBar from "@/components/TopBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useList } from "@/contexts/ListContext";
 import historyBg from "@/assets/history-bg.jpg";
+import AnimeArtwork from "@/components/AnimeArtwork";
+import { resolveSlug } from "@/data/animeData";
 
 const formatDate = (ts: number) => {
   const diff = Date.now() - ts;
@@ -78,13 +80,13 @@ const History = () => {
               {[...history].sort((a, b) => b.watchedAt - a.watchedAt).map((h, i) => (
                 <div key={`${h.slug}-${h.episode}-${i}`} className="group relative bg-card/60 backdrop-blur-sm rounded-md overflow-hidden border border-border hover:border-primary/50 transition-colors">
                   <Link to={`/anime/${h.slug}/watch/${h.episode}`} className="block">
-                    <div className={`relative aspect-video bg-gradient-to-br ${h.cover}`}>
+                    <AnimeArtwork cover={resolveSlug(h.slug)?.cover || h.cover} className="relative aspect-video">
                       <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors" />
                       <div className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded">
                         EP {h.episode}
                       </div>
                       <div className="absolute bottom-1 right-1 bg-background/80 text-foreground text-[9px] px-1 py-0.5 rounded">24:00</div>
-                    </div>
+                    </AnimeArtwork>
                     <div className="p-2">
                       <p className="text-foreground text-[11px] font-medium leading-tight truncate group-hover:text-primary transition-colors">
                         {h.episode} : {h.episodeTitle || `Episode ${h.episode}`}

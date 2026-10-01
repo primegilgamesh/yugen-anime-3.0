@@ -5,6 +5,7 @@ import { AnimeEntry } from "@/data/animeData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useList, ListCategory } from "@/contexts/ListContext";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import AnimeArtwork from "@/components/AnimeArtwork";
 
 const listOptions: { id: ListCategory; label: string }[] = [
   { id: "plan-to-watch", label: "Plan to Watch" },
@@ -98,7 +99,7 @@ const ListControls = ({ anime, size = "md" }: Props) => {
                   <td className="py-2 pr-3 text-muted-foreground w-32">Anime</td>
                   <td className="py-2">
                     <div className="flex items-center gap-2">
-                      <div className={`w-10 h-14 rounded bg-gradient-to-br ${anime.cover} flex-shrink-0`} />
+                      <AnimeArtwork cover={anime.cover} className="w-10 h-14 overflow-hidden rounded flex-shrink-0" />
                       <span className="text-foreground font-medium">{anime.title}</span>
                     </div>
                   </td>

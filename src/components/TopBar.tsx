@@ -12,6 +12,7 @@ import {
 import { allAnime } from "@/data/animeData";
 import { searchAnime } from "@/lib/animeMatch";
 import yugenLogo from "@/assets/yugen-logo.png";
+import AnimeArtwork from "@/components/AnimeArtwork";
 
 const DiscordIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -140,7 +141,7 @@ const TopBar = () => {
     <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md shadow-lg z-50 max-h-[320px] overflow-y-auto">
       {searchResults.map((a) => (
         <button type="button" key={a.slug} onClick={() => handleResultClick(a.slug)} className="w-full flex items-center gap-3 px-3 py-2 hover:bg-secondary transition-colors text-left">
-          <div className={`w-8 h-10 rounded bg-gradient-to-br ${a.cover} flex-shrink-0`} />
+          <AnimeArtwork cover={a.cover} className="w-8 h-10 overflow-hidden rounded flex-shrink-0" />
           <div className="min-w-0">
             <p className="text-foreground text-sm font-medium truncate">{a.title}</p>
             <p className="text-muted-foreground text-[10px]">{a.season} • {a.score?.toFixed(2)}</p>

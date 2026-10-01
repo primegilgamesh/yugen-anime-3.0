@@ -12,6 +12,7 @@ import EpisodeGrid from "@/components/EpisodeGrid";
 import ReviewsSection from "@/components/ReviewsSection";
 import AnimeHeroBanner from "@/components/AnimeHeroBanner";
 import TrailerSection from "@/components/TrailerSection";
+import AnimeArtwork from "@/components/AnimeArtwork";
 import { allAnime, getRelatedSeasons, resolveSlug } from "@/data/animeData";
 import { Link } from "react-router-dom";
 
@@ -91,13 +92,13 @@ const AnimePage = () => {
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                         {related.map((r) => (
                           <Link to={`/anime/${r.slug}`} key={r.slug} className="group block">
-                            <div className={`relative aspect-[3/4] rounded-md bg-gradient-to-br ${r.cover} overflow-hidden`}>
+                            <AnimeArtwork cover={r.cover} className="relative aspect-[3/4] rounded-md overflow-hidden">
                               <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors" />
                               <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
                                 <p className="text-foreground text-xs font-semibold truncate">{r.title}</p>
                                 <p className="text-muted-foreground text-[10px]">{r.format || "TV"} · {r.season}</p>
                               </div>
-                            </div>
+                            </AnimeArtwork>
                           </Link>
                         ))}
                       </div>
