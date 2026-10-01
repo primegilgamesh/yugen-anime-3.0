@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useList, ListCategory } from "@/contexts/ListContext";
 import { getGradient, allAnime } from "@/data/animeData";
 import listBg from "@/assets/list-bg.jpg";
+import AnimeArtwork from "@/components/AnimeArtwork";
 
 const tabs = [
   { id: "favorites" as const, label: "Favorites", icon: Heart },
@@ -96,7 +97,7 @@ const MyList = () => {
                 return (
                   <div key={item.slug} className="group block relative">
                     <Link to={`/anime/${item.slug}`}>
-                      <div className={`relative rounded-md overflow-hidden bg-gradient-to-br ${item.cover || getGradient(i)} aspect-[3/4]`}>
+                      <AnimeArtwork cover={anime?.cover || item.cover || getGradient(i)} className="relative rounded-md overflow-hidden aspect-[3/4]">
                         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
                         {item.episodesWatched > 0 && (
                           <div className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded">
@@ -106,7 +107,7 @@ const MyList = () => {
                         <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
                           <p className="text-foreground text-xs font-semibold leading-tight truncate">{item.title}</p>
                         </div>
-                      </div>
+                      </AnimeArtwork>
                     </Link>
                     <button
                       onClick={(e) => {

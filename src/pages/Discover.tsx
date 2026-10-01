@@ -7,6 +7,7 @@ import BottomNav from "@/components/BottomNav";
 import TopBar from "@/components/TopBar";
 import { allAnime, getGradient } from "@/data/animeData";
 import { searchAnime } from "@/lib/animeMatch";
+import AnimeArtwork from "@/components/AnimeArtwork";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -190,7 +191,7 @@ const Discover = () => {
           <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
             {pageAnime.map((anime, i) => (
               <Link to={`/anime/${anime.slug}`} key={anime.slug} className="group block">
-                <div className={`relative rounded-md overflow-hidden bg-gradient-to-br ${getGradient(startIdx + i)} aspect-[3/4]`}>
+                <AnimeArtwork cover={anime.cover || getGradient(startIdx + i)} className="relative rounded-md overflow-hidden aspect-[3/4]">
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
                   {anime.dubbed && (
                     <div className="absolute bottom-8 left-1.5 bg-card/80 text-foreground text-[9px] flex items-center gap-0.5 px-1.5 py-0.5 rounded">
@@ -200,7 +201,7 @@ const Discover = () => {
                   <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
                     <p className="text-foreground text-xs font-semibold leading-tight truncate">{anime.title}</p>
                   </div>
-                </div>
+                </AnimeArtwork>
                 <div className="mt-1.5">
                   <p className="text-foreground text-xs font-medium truncate group-hover:text-primary transition-colors">{anime.title}</p>
                   <div className="flex items-center gap-2 mt-0.5">

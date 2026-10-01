@@ -1,4 +1,11 @@
 import { franchiseMovieEntries } from "./franchiseMovies";
+import attackOnTitanArtwork from "@/assets/anime/attack-on-titan.jpg.asset.json";
+import demonSlayerArtwork from "@/assets/anime/demon-slayer.jpg.asset.json";
+import drStoneArtwork from "@/assets/anime/dr-stone.jpg.asset.json";
+import goldenKamuyArtwork from "@/assets/anime/golden-kamuy.jpg.asset.json";
+import onePieceArtwork from "@/assets/anime/one-piece.jpg.asset.json";
+import oshiNoKoArtwork from "@/assets/anime/oshi-no-ko.jpg.asset.json";
+import vinlandSagaArtwork from "@/assets/anime/vinland-saga.jpg.asset.json";
 export interface EpisodeInfo {
   num: number;
   title: string;
@@ -2236,6 +2243,22 @@ donghuaCatalog.forEach((s) => { if (!allAnime.find((a) => a.slug === s.slug)) al
 
 // Franchise movies, specials, OVAs, prequels and sequels.
 franchiseMovieEntries.forEach((s) => { if (!allAnime.find((a) => a.slug === s.slug)) allAnime.push(s); });
+
+// Uploaded artwork is assigned only to its exact matching catalog title.
+const uploadedArtwork: Record<string, string> = {
+  "attack-on-titan": attackOnTitanArtwork.url,
+  "demon-slayer": demonSlayerArtwork.url,
+  "dr-stone": drStoneArtwork.url,
+  "golden-kamuy": goldenKamuyArtwork.url,
+  "one-piece": onePieceArtwork.url,
+  "oshi-no-ko": oshiNoKoArtwork.url,
+  "vinland-saga": vinlandSagaArtwork.url,
+};
+
+allAnime.forEach((anime) => {
+  const artwork = uploadedArtwork[anime.slug];
+  if (artwork) anime.cover = artwork;
+});
 
 // ---------------------------------------------------------------------------
 // Duplicate cleanup: some franchises were listed twice under different slugs

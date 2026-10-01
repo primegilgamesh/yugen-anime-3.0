@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Star, Headphones } from "lucide-react";
+import AnimeArtwork from "@/components/AnimeArtwork";
 
 interface AnimeCardProps {
   slug: string;
@@ -15,7 +16,7 @@ interface AnimeCardProps {
 
 const AnimeCard = ({ slug, title, season, score, gradient, dubbed, variant = "default", number, subtitle }: AnimeCardProps) => (
   <Link to={`/anime/${slug}`} className="group block">
-    <div className={`relative rounded-md overflow-hidden bg-gradient-to-br ${gradient} ${variant === "wide" ? "aspect-[16/10]" : "aspect-[3/4]"}`}>
+    <AnimeArtwork cover={gradient} className={`relative rounded-md overflow-hidden ${variant === "wide" ? "aspect-[16/10]" : "aspect-[3/4]"}`}>
       {/* Overlay for readability */}
       <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
       {/* Number badge */}
@@ -34,7 +35,7 @@ const AnimeCard = ({ slug, title, season, score, gradient, dubbed, variant = "de
       <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
         <p className="text-foreground text-xs font-semibold leading-tight truncate">{title}</p>
       </div>
-    </div>
+    </AnimeArtwork>
     <div className="mt-1.5">
       <p className="text-foreground text-xs font-medium truncate group-hover:text-primary transition-colors">{title}</p>
       <div className="flex items-center gap-2 mt-0.5">
