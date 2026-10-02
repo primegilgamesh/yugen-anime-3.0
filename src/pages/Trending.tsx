@@ -4,6 +4,7 @@ import Sidebar from "@/components/Sidebar";
 import BottomNav from "@/components/BottomNav";
 import TopBar from "@/components/TopBar";
 import { trendingAiring, recentlyReleased, getGradient } from "@/data/animeData";
+import AnimeArtwork from "@/components/AnimeArtwork";
 
 const trendingSeries = [
   { ...trendingAiring.find((a) => a.slug === "one-piece")!, nativeTitle: "ワンピース" },
@@ -29,7 +30,7 @@ const Trending = () => (
           <div className="space-y-6">
             {trendingSeries.map((anime, i) => (
               <Link to={`/anime/${anime.slug}`} key={anime.slug} className="flex gap-4 group">
-                <div className={`w-24 h-32 md:w-28 md:h-36 rounded-md overflow-hidden bg-gradient-to-br ${getGradient(i)} flex-shrink-0`} />
+                <AnimeArtwork cover={anime.cover || getGradient(i)} className="w-24 h-32 md:w-28 md:h-36 rounded-md overflow-hidden flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-muted-foreground text-[10px] uppercase">{anime.nativeTitle}</p>
                   <h3 className="text-foreground font-display font-bold text-base group-hover:text-primary transition-colors">{anime.title}</h3>
