@@ -6,7 +6,6 @@ import BottomNav from "@/components/BottomNav";
 import TopBar from "@/components/TopBar";
 import SectionHeader from "@/components/SectionHeader";
 import {
-  heroPicks,
   trendingAiring,
   editorsPick,
   underratedSeries,
