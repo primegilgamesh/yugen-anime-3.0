@@ -54,11 +54,16 @@ const reviews = [
   { id: "home-rev-6", anime: "I've Got a Million Skill Points!", slug: "million-skill-points", user: "NightShade587", quote: "Some descriptions, I should be clear, the anime is alright because it currently has no description.", time: "2 days ago", likes: 1, gradient: 3 },
 ];
 
-// Default 5 hero slides; admins can override via the Admin Home Layout tab.
+// Default slides use the uploaded artwork only on their exact catalog entries.
 const defaultHeroSlides = [
-  ...heroPicks,
-  ...allAnime.filter((a) => !heroPicks.find((h) => h.slug === a.slug)).slice(0, 5),
-].slice(0, 5);
+  "one-piece",
+  "attack-on-titan",
+  "demon-slayer",
+  "dr-stone",
+  "oshi-no-ko",
+  "golden-kamuy",
+  "vinland-saga",
+].map((slug) => resolveSlug(slug)).filter((anime): anime is NonNullable<typeof anime> => Boolean(anime));
 
 const Home = () => {
   const { isLiked, toggleLike, getCount } = useReviewLikes();
@@ -96,7 +101,7 @@ const Home = () => {
 
   const AnimePortraitCard = ({ anime, i }: { anime: typeof trendingAiring[0]; i: number }) => (
     <Link to={`/anime/${anime.slug}`} key={anime.slug} className="group block">
-      <AnimeArtwork cover={anime.cover || getGradient(i)} className="relative rounded-md overflow-hidden aspect-[3/4]">
+      <AnimeArtwork cover={resolveSlug(anime.slug)?.cover || anime.cover || getGradient(i)} className="relative rounded-md overflow-hidden aspect-[3/4]">
         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
         {anime.dubbed && <div className="absolute bottom-8 left-1.5 bg-card/80 text-foreground text-[9px] flex items-center gap-0.5 px-1.5 py-0.5 rounded"><Headphones size={10} /> Available in Dub</div>}
         <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
