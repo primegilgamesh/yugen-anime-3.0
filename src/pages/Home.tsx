@@ -14,6 +14,7 @@ import {
   mostPopular,
   getGradient,
   allAnime,
+  resolveSlug,
 } from "@/data/animeData";
 import { recentEpisodes } from "@/data/recentEpisodes";
 import { useReviewLikes } from "@/contexts/ReviewLikesContext";
@@ -137,11 +138,14 @@ const Home = () => {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {items.map((ep, i) => (
             <Link to={`/anime/${ep.slug}/watch/${ep.episode}`} key={`${ep.slug}-${i}`} className="group block">
-              <div className={`relative rounded-md overflow-hidden bg-gradient-to-br ${getGradient(ep.gradient)} aspect-video`}>
+              <AnimeArtwork
+                cover={resolveSlug(ep.slug)?.cover || getGradient(ep.gradient)}
+                className="relative rounded-md overflow-hidden aspect-video"
+              >
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
                 <div className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded">EP {ep.episode}</div>
                 <div className="absolute bottom-1 right-1 bg-background/80 text-foreground text-[9px] px-1 py-0.5 rounded">{ep.duration}</div>
-              </div>
+              </AnimeArtwork>
               <div className="mt-1.5">
                 <p className="text-foreground text-[11px] font-medium leading-tight truncate group-hover:text-primary transition-colors">{ep.episode} : {ep.title}</p>
                 <p className="text-status-watching text-[10px] truncate">{ep.title}</p>
@@ -176,8 +180,12 @@ const Home = () => {
             >
               {/* Blurred banner background */}
               <Link to={`/anime/${pick.slug}`} className="absolute inset-0 overflow-hidden">
-                <AnimeArtwork cover={pick.cover} className="absolute -inset-6 blur-xl scale-110 opacity-70" />
-                <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/60 to-background/20" />
+                <AnimeArtwork
+                  cover={pick.cover}
+                  className="absolute inset-0 sm:-inset-6 sm:blur-xl sm:scale-110 opacity-100 sm:opacity-70"
+                  imageClassName="object-cover object-center"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/65 to-background/15" />
               </Link>
 
               {/* Slanted poster with white edges */}
@@ -295,7 +303,10 @@ const Home = () => {
                 return (
                   <div key={i} className="bg-card border border-border rounded-lg overflow-hidden group hover:border-primary/50 transition-colors">
                     <Link to={`/anime/${review.slug}?tab=Reviews`}>
-                      <div className={`w-full h-28 bg-gradient-to-br ${getGradient(review.gradient)}`} />
+                      <AnimeArtwork
+                        cover={resolveSlug(review.slug)?.cover || getGradient(review.gradient)}
+                        className="w-full h-28"
+                      />
                     </Link>
                     <div className="p-3">
                       <Link to={`/anime/${review.slug}?tab=Reviews`} className="text-primary text-[11px] font-medium group-hover:underline block">Review of {review.anime} by {review.user}</Link>
