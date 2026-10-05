@@ -192,14 +192,13 @@ const Home = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/65 to-background/15" />
               </Link>
 
-              {/* Slanted poster with white edges */}
+              {/* Borderless slanted poster */}
               <Link
                 to={`/anime/${pick.slug}`}
                 className="absolute top-0 bottom-0 right-[6%] w-[42%] md:w-[36%] hidden sm:block"
                 style={{ clipPath: "polygon(24% 0, 100% 0, 76% 100%, 0 100%)" }}
               >
-                <div className="absolute inset-0 bg-foreground" />
-                <AnimeArtwork cover={pick.cover} className="absolute inset-4" />
+                <AnimeArtwork cover={pick.cover} className="absolute inset-0" />
               </Link>
 
               {/* Text content */}
