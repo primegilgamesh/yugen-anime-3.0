@@ -84,6 +84,14 @@ const Home = () => {
     setCurrentSlide(0);
   }, [heroSlides]);
 
+  useEffect(() => {
+    if (heroSlides.length < 2) return;
+    const interval = window.setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 5500);
+    return () => window.clearInterval(interval);
+  }, [heroSlides]);
+
   const handleTouchStart = (e: TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchMove = (e: TouchEvent) => { touchEndX.current = e.touches[0].clientX; };
   const handleTouchEnd = () => {
@@ -220,13 +228,8 @@ const Home = () => {
           {/* Progress bar */}
           <div className="absolute bottom-0 left-0 right-0 h-[3px] z-20">
             <div
-              key={`${heroSlides[currentSlide]?.slug}-${currentSlide}`}
-              className="hero-progress h-full w-full origin-left bg-primary"
-              onAnimationEnd={() => {
-                if (heroSlides.length > 1) {
-                  setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-                }
-              }}
+              className="h-full w-full origin-left bg-primary transition-transform duration-300 ease-out motion-reduce:transition-none"
+              style={{ transform: `scaleX(${heroSlides.length ? (currentSlide + 1) / heroSlides.length : 0})` }}
             />
           </div>
         </div>
