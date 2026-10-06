@@ -80,14 +80,9 @@ const Home = () => {
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
-  const SLIDE_DURATION = 5 * 1000;
-
   useEffect(() => {
-    const t = setTimeout(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, SLIDE_DURATION);
-    return () => clearTimeout(t);
-  }, [currentSlide]);
+    setCurrentSlide(0);
+  }, [heroSlides]);
 
   const handleTouchStart = (e: TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchMove = (e: TouchEvent) => { touchEndX.current = e.touches[0].clientX; };
@@ -225,12 +220,15 @@ const Home = () => {
           {/* Progress bar */}
           <div className="absolute bottom-0 left-0 right-0 h-[3px] z-20">
             <div
-              key={currentSlide}
-              className="h-full bg-primary"
-              style={{ animation: `hero-progress ${SLIDE_DURATION}ms linear forwards` }}
+              key={`${heroSlides[currentSlide]?.slug}-${currentSlide}`}
+              className="hero-progress h-full w-full origin-left bg-primary"
+              onAnimationEnd={() => {
+                if (heroSlides.length > 1) {
+                  setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+                }
+              }}
             />
           </div>
-          <style>{`@keyframes hero-progress{from{width:0}to{width:100%}}`}</style>
         </div>
         </div>
 

@@ -115,6 +115,15 @@
   border-radius: 3px;
 }
 
+/* One animation clock controls both spotlight progress and slide changes. */
+@keyframes hero-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.hero-progress {
+  animation: hero-progress 5s linear forwards;
+}
+
 /* Error code digit animation */
 @keyframes error-digit-in {
   0%   { opacity: 0; transform: translateY(-30px) rotateX(-90deg) scale(0.6); filter: blur(6px); }
