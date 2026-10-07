@@ -1,5 +1,5 @@
 # Tasks
 
-- [ ] Find exact catalog matches for missing posters from the supplied site.
-- [ ] Store matching pictures and apply them without replacing existing artwork.
-- [ ] Verify matching and picture rendering.
+- [x] Find exact catalog matches for missing posters from the supplied site (one verified missing match; skipped different/unlisted installments).
+- [x] Store matching pictures and apply them without replacing existing artwork.
+- [x] Verify matching and picture rendering (16 tests passed; Discover poster checked).

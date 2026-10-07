@@ -6,6 +6,7 @@ import goldenKamuyArtwork from "@/assets/anime/golden-kamuy.jpg.asset.json";
 import onePieceArtwork from "@/assets/anime/one-piece.jpg.asset.json";
 import oshiNoKoArtwork from "@/assets/anime/oshi-no-ko.jpg.asset.json";
 import vinlandSagaArtwork from "@/assets/anime/vinland-saga.jpg.asset.json";
+import soloLevelingSeason2Artwork from "@/assets/anime/solo-leveling-s2.jpg.asset.json";
 export interface EpisodeInfo {
   num: number;
   title: string;
@@ -2357,6 +2358,16 @@ export const slugAliases: Record<string, string> = {};
   allAnime.push(...survivors);
 })();
 
+// Verified source posters fill missing artwork only, after canonicalization.
+const missingCatalogArtwork: Record<string, string> = {
+  "solo-leveling-s2": soloLevelingSeason2Artwork.url,
+};
+allAnime.forEach((anime) => {
+  const artwork = missingCatalogArtwork[anime.slug];
+  if (artwork && !anime.cover.startsWith("/") && !/^https?:\/\//.test(anime.cover)) {
+    anime.cover = artwork;
+  }
+});
 
 /** Resolve a possibly-outdated slug to the canonical catalog entry. */
 export const resolveSlug = (slug?: string): AnimeEntry | undefined => {
